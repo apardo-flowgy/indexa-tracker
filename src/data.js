@@ -511,6 +511,59 @@ export function buildScenarioTables(dataset, assumptions, comparatorSettings) {
   };
 }
 
+export function buildPeriodComparison(dataset) {
+  const lastDataDate = dataset.volumeRows.at(-1)?.date ?? new Date();
+  const currentYear  = lastDataDate.getFullYear();
+  const currentMonth = lastDataDate.getMonth();
+  const currentQuarter = Math.floor(currentMonth / 3);
+  const rows = dataset.monthlyRows;
+
+  const monthNames = [
+    "Enero","Febrero","Marzo","Abril","Mayo","Junio",
+    "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre",
+  ];
+
+  // ── Mensual: mismo mes, últimos 4 años completos + este año proyectado ────
+  const monthBars = [];
+  for (let y = currentYear - 4; y <= currentYear; y++) {
+    const row = rows.find((r) => r.date.getFullYear() === y && r.date.getMonth() === currentMonth);
+    if (!row) continue;
+    if (y < currentYear) {
+      monthBars.push({ year: y, inflows: row.inflowsMonthly, isProjected: false });
+    } else {
+      const daysInMonth  = new Date(y, currentMonth + 1, 0).getDate();
+      const daysElapsed  = lastDataDate.getDate();
+      const projected    = daysElapsed > 0 ? row.inflowsMonthly / daysElapsed * daysInMonth : 0;
+      monthBars.push({ year: y, inflows: projected, isProjected: true });
+    }
+  }
+
+  // ── Trimestral: mismo trimestre, últimos 4 años completos + este año ──────
+  const qStartMonth = currentQuarter * 3;
+  const quarterBars = [];
+  for (let y = currentYear - 4; y <= currentYear; y++) {
+    const qStart = new Date(y, qStartMonth, 1);
+    const qEnd   = new Date(y, qStartMonth + 3, 1);
+    const qRows  = rows.filter((r) => r.date >= qStart && r.date < qEnd);
+    if (!qRows.length) continue;
+    if (y < currentYear) {
+      if (qRows.length < 3) continue;
+      quarterBars.push({ year: y, inflows: qRows.reduce((s, r) => s + r.inflowsMonthly, 0), isProjected: false });
+    } else {
+      const daysInQ    = Math.round((new Date(y, qStartMonth + 3, 0) - qStart) / 864e5) + 1;
+      const daysElapsed = Math.min(Math.round((lastDataDate - qStart) / 864e5) + 1, daysInQ);
+      const soFar      = qRows.reduce((s, r) => s + r.inflowsMonthly, 0);
+      const projected  = daysElapsed > 0 ? soFar / daysElapsed * daysInQ : 0;
+      quarterBars.push({ year: y, inflows: projected, isProjected: true });
+    }
+  }
+
+  return {
+    monthly:   { label: `${monthNames[currentMonth]} — historico vs ${currentYear}`, bars: monthBars },
+    quarterly: { label: `T${currentQuarter + 1} — historico vs ${currentYear}`, bars: quarterBars },
+  };
+}
+
 export function buildTrackerData(dataset) {
   const today = new Date();
   const { currentAum, currentArr, endDate: lastDate } = dataset.metrics.summary;

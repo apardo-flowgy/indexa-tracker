@@ -454,8 +454,8 @@ function simulateFundVsIndexa(settings) {
 
 export async function loadIndexaDataset() {
   const [volumeCsv, revenueCsv] = await Promise.all([
-    fetch("/data/indexa_stats_volume.csv").then((response) => response.text()),
-    fetch("/data/indexa_stats_revenue.csv").then((response) => response.text())
+    fetch(`${import.meta.env.BASE_URL}data/indexa_stats_volume.csv`).then((response) => response.text()),
+    fetch(`${import.meta.env.BASE_URL}data/indexa_stats_revenue.csv`).then((response) => response.text())
   ]);
 
   const volumeRows = normalizeVolumeRows(parseCsv(volumeCsv));

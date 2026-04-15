@@ -620,20 +620,6 @@ export default function App() {
         <section className="chart-section">
           <div className="chart-top">
             <div>
-              <h2>Aportaciones netas vs retorno de mercado</h2>
-              <p>Ultimos 18 meses · separa crecimiento organico de apreciacion de mercado</p>
-            </div>
-            <div className="chart-legend">
-              <span><i className="leg-dot" style={{ background: "#3B82F6" }} />Entradas netas</span>
-              <span><i className="leg-dot" style={{ background: "#10B981" }} />Retorno mercado</span>
-            </div>
-          </div>
-          <InflowsChart data={decomposition} />
-        </section>
-
-        <section className="chart-section">
-          <div className="chart-top">
-            <div>
               <h2>Aportaciones netas anuales</h2>
               <p>Vision agregada por ano para ver la aceleracion del negocio sin ruido mensual</p>
             </div>

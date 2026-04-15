@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import {
   buildTrackerData,
+  buildPeriodComparison,
   COMPANY_TARGET,
   euroCompact,
   EXPONENTIAL_MILESTONES,
@@ -81,10 +82,13 @@ function StatusBadge({ delta }) {
   return <span className={`badge ${info.cls}`}>{info.label}</span>;
 }
 
-function MetricCard({ label, value, sub, delta }) {
+function MetricCard({ label, value, sub, delta, info }) {
   return (
     <article className="metric-card">
-      <span className="metric-label">{label}</span>
+      <div className="metric-label-row">
+        <span className="metric-label">{label}</span>
+        {info && <InfoTooltip>{info}</InfoTooltip>}
+      </div>
       <strong className="metric-value">{value}</strong>
       <span className="metric-sub">{sub}</span>
       <StatusBadge delta={delta} />
@@ -519,6 +523,115 @@ function HistoryTable({ yearlyRows }) {
   );
 }
 
+function InfoTooltip({ children }) {
+  const [visible, setVisible] = useState(false);
+  return (
+    <span className="info-tooltip-wrap">
+      <button
+        className="info-tooltip-btn"
+        onMouseEnter={() => setVisible(true)}
+        onMouseLeave={() => setVisible(false)}
+        aria-label="Mas informacion"
+      >?</button>
+      {visible && <div className="info-tooltip-box">{children}</div>}
+    </span>
+  );
+}
+
+function PeriodComparisonBars({ label, bars }) {
+  if (!bars?.length) return null;
+
+  const W = 480;
+  const H = 220;
+  const pad = { top: 28, bottom: 32, left: 16, right: 16 };
+  const iW = W - pad.left - pad.right;
+  const iH = H - pad.top - pad.bottom;
+
+  const maxVal = Math.max(...bars.map((b) => b.inflows), 0) * 1.15;
+  const slotW = iW / bars.length;
+  const barW = Math.max(18, slotW * 0.55);
+  const yScale = (v) => pad.top + iH * (1 - v / (maxVal || 1));
+  const xCenter = (i) => pad.left + (i + 0.5) * slotW;
+
+  const isMonthly = !label.startsWith("T");
+
+  return (
+    <article className="comparison-card">
+      <div className="comparison-header">
+        <div>
+          <h2 className="comparison-title">{label}</h2>
+          <p className="comparison-sub">Aportaciones netas · ultimos 4 anos + {new Date().getFullYear()} proyectado</p>
+        </div>
+        <InfoTooltip>
+          {isMonthly ? (
+            <>
+              <p>Cada barra muestra las <strong>aportaciones netas brutas</strong> del mismo mes en cada uno de los ultimos 4 anos completos.</p>
+              <p style={{ marginTop: 8 }}>La barra de <strong>{new Date().getFullYear()}p</strong> es una proyeccion al mes completo calculada asi:</p>
+              <p style={{ marginTop: 4, fontFamily: "monospace", fontSize: "0.82em", background: "rgba(255,255,255,0.08)", padding: "4px 8px", borderRadius: 4 }}>
+                aportaciones acumuladas / dias transcurridos × dias totales del mes
+              </p>
+              <p style={{ marginTop: 8, opacity: 0.7 }}>Util para ver si el ritmo de este mes es alto o bajo comparado con anos anteriores.</p>
+            </>
+          ) : (
+            <>
+              <p>Cada barra muestra las <strong>aportaciones netas brutas</strong> del mismo trimestre en cada uno de los ultimos 4 anos completos.</p>
+              <p style={{ marginTop: 8 }}>La barra de <strong>{new Date().getFullYear()}p</strong> es una proyeccion al trimestre completo calculada asi:</p>
+              <p style={{ marginTop: 4, fontFamily: "monospace", fontSize: "0.82em", background: "rgba(255,255,255,0.08)", padding: "4px 8px", borderRadius: 4 }}>
+                aportaciones acumuladas / dias transcurridos × dias totales del trimestre
+              </p>
+              <p style={{ marginTop: 8, opacity: 0.7 }}>Util para ver si el ritmo de este trimestre es alto o bajo comparado con anos anteriores.</p>
+            </>
+          )}
+        </InfoTooltip>
+      </div>
+      <svg viewBox={`0 0 ${W} ${H}`} className="chart-svg">
+        {bars.map((bar, i) => {
+          const bh = Math.max(2, iH - (yScale(bar.inflows) - pad.top));
+          const by = yScale(bar.inflows);
+          const cx = xCenter(i);
+          const isProj = bar.isProjected;
+          return (
+            <g key={bar.year}>
+              <rect
+                x={(cx - barW / 2).toFixed(1)}
+                y={by.toFixed(1)}
+                width={barW.toFixed(1)}
+                height={bh.toFixed(1)}
+                fill={isProj ? "#CCFBF1" : "#0F766E"}
+                stroke={isProj ? "#0F766E" : "none"}
+                strokeWidth={isProj ? "1.5" : "0"}
+                strokeDasharray={isProj ? "4 2" : "none"}
+                rx="4"
+                opacity={isProj ? 1 : 0.85}
+              />
+              <text
+                x={cx.toFixed(1)}
+                y={(by - 6).toFixed(1)}
+                textAnchor="middle"
+                fontSize="11"
+                fontWeight="600"
+                fill={isProj ? "#0F766E" : "#1A202C"}
+              >
+                {euroCompact.format(bar.inflows)}
+              </text>
+              <text
+                x={cx.toFixed(1)}
+                y={(H - 8).toFixed(1)}
+                textAnchor="middle"
+                fontSize="12"
+                fill={isProj ? "#0F766E" : "#718096"}
+                fontWeight={isProj ? "700" : "400"}
+              >
+                {bar.isProjected ? `${bar.year}p` : bar.year}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
+    </article>
+  );
+}
+
 export default function App() {
   const [dataset, setDataset] = useState(null);
   const [error, setError] = useState(null);
@@ -537,6 +650,7 @@ export default function App() {
   if (!dataset) return <div className="loading">Cargando datos...</div>;
 
   const tracker = buildTrackerData(dataset);
+  const periodComp = buildPeriodComparison(dataset);
   const {
     currentAum,
     currentArr,
@@ -585,6 +699,7 @@ export default function App() {
               value={euroCompact.format(currentAum)}
               sub={`Objetivo hoy: ${euroCompact.format(targetAumNow)} · Objetivo fin de ano: ${euroCompact.format(targetYearEnd)}`}
               delta={aumDeltaPct}
+              info={<p>Activos Bajo Gestion a la fecha del ultimo dato. Se compara con la curva objetivo exponencial (CAGR ~22% desde {euroCompact.format(COMPANY_TARGET.aumStart)} a fin de 2025 hasta {euroCompact.format(COMPANY_TARGET.aumEnd)} en 2030). El badge indica si el AUM esta por encima o por debajo de esa curva hoy.</p>}
             />
 
             <MetricCard
@@ -592,6 +707,7 @@ export default function App() {
               value={euroCompact.format(currentArr)}
               sub={`Objetivo hoy: ${euroCompact.format(targetArrNow)} · Meta 2030: ${euroCompact.format(COMPANY_TARGET.arrEnd)}`}
               delta={arrDeltaPct}
+              info={<p>Ingresos Anuales Recurrentes estimados: AUM actual × comision media anual. Es el ritmo de ingresos si el AUM se mantuviera constante un ano entero. El objetivo publico de Indexa es alcanzar 30M€ ARR en 2030.</p>}
             />
 
             <MetricCard
@@ -599,6 +715,7 @@ export default function App() {
               value={euroCompact.format(projectedYeAum)}
               sub={`${euroCompact.format(avgMonthlyInflow)}/mes neto · media 3 meses · objetivo: ${euroCompact.format(targetYearEnd)}`}
               delta={paceDeltaPct}
+              info={<><p>Estimacion del AUM a 31 de diciembre calculada como:</p><p style={{marginTop:6, fontFamily:"monospace", fontSize:"0.82em", background:"rgba(255,255,255,0.08)", padding:"4px 8px", borderRadius:4}}>AUM × (1 + 5%/12)^meses + aportaciones_medias × meses</p><p style={{marginTop:6}}>Se asume un 5% anual de rentabilidad de mercado y se extrapola el ritmo de aportaciones netas de los ultimos 3 meses.</p></>}
             />
           </div>
         </section>
@@ -606,7 +723,10 @@ export default function App() {
         <section className="chart-section">
           <div className="chart-top">
             <div>
-              <h2>Trayectoria de AUM vs objetivo exponencial</h2>
+              <div className="chart-title-row">
+                <h2>Trayectoria de AUM vs objetivo exponencial</h2>
+                <InfoTooltip><p>Evolucion mensual del AUM real (linea verde continua) junto con la curva objetivo exponencial (linea gris punteada). La curva se ancla en {euroCompact.format(COMPANY_TARGET.aumStart)} a fin de 2025 y crece a CAGR ~22% hasta {euroCompact.format(COMPANY_TARGET.aumEnd)} en 2030, lo que implica 30M€ ARR a una comision media del 0,25%.</p></InfoTooltip>
+              </div>
               <p>Curva objetivo: CAGR ~22% desde {euroCompact.format(COMPANY_TARGET.aumStart)} (fin 2025) hasta {euroCompact.format(COMPANY_TARGET.aumEnd)} (2030)</p>
             </div>
             <div className="chart-legend">
@@ -620,7 +740,10 @@ export default function App() {
         <section className="chart-section">
           <div className="chart-top">
             <div>
-              <h2>Aportaciones netas anuales</h2>
+              <div className="chart-title-row">
+                <h2>Aportaciones netas anuales</h2>
+                <InfoTooltip><p>Suma de todas las aportaciones netas brutas de cada ano (entradas menos salidas de dinero). <strong>No incluye la rentabilidad generada por los mercados</strong>, solo el crecimiento organico. Permite ver si el negocio esta captando mas capital ano a ano.</p></InfoTooltip>
+              </div>
               <p>Vision agregada por ano para ver la aceleracion del negocio sin ruido mensual</p>
             </div>
           </div>
@@ -628,10 +751,18 @@ export default function App() {
         </section>
 
         <section className="seasonality-grid">
+          <PeriodComparisonBars {...periodComp.monthly} />
+          <PeriodComparisonBars {...periodComp.quarterly} />
+        </section>
+
+        <section className="seasonality-grid">
           <article className="chart-section">
             <div className="chart-top">
               <div>
-                <h2>Estacionalidad mensual de aportaciones</h2>
+                <div className="chart-title-row">
+                  <h2>Estacionalidad mensual de aportaciones</h2>
+                  <InfoTooltip><p>Para cada mes, muestra las aportaciones netas como porcentaje de las aportaciones acumuladas a 1 de enero del mismo ano. Normalizar por la base de enero permite <strong>comparar patrones estacionales entre anos de distinto tamano</strong>. Un valor alto indica un mes de captacion fuerte respecto al ritmo del ano.</p></InfoTooltip>
+                </div>
                 <p>Aportaciones mensuales / aportaciones acumuladas a 1 de enero (%) · ultimos 5 anos</p>
               </div>
             </div>
@@ -644,7 +775,10 @@ export default function App() {
           <article className="chart-section">
             <div className="chart-top">
               <div>
-                <h2>Estacionalidad trimestral de aportaciones</h2>
+                <div className="chart-title-row">
+                  <h2>Estacionalidad trimestral de aportaciones</h2>
+                  <InfoTooltip><p>La misma metrica que la estacionalidad mensual pero agregada por trimestre. Suaviza el ruido de meses individuales y hace mas visible si hay trimestres sistematicamente fuertes o debiles a lo largo del ano.</p></InfoTooltip>
+                </div>
                 <p>Misma metrica agregada por trimestre para suavizar ruido mensual y ver mejor la pauta anual</p>
               </div>
             </div>
@@ -656,7 +790,10 @@ export default function App() {
         </section>
 
         <section className="history-section">
-          <h2>Historico y hitos objetivo</h2>
+          <div className="chart-title-row">
+            <h2>Historico y hitos objetivo</h2>
+            <InfoTooltip><p>Datos reales auditados del AUM y ARR a fin de cada ano. Las filas en cursiva son los <strong>hitos objetivo</strong> de la curva exponencial hasta 2030, no datos reales. La fee media futura se asume constante al {percent.format(COMPANY_TARGET.feeRate)} sobre AUM.</p></InfoTooltip>
+          </div>
           <p className="section-sub">
             Datos reales auditados + curva exponencial hasta 2030 · Fee media constante al {percent.format(COMPANY_TARGET.feeRate)} sobre AUM
           </p>

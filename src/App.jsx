@@ -185,10 +185,16 @@ function AumChart({ data }) {
   );
 }
 
+const ARR_YOY_REFS = [
+  { value: 0.30, label: "+30%", color: "#94A3B8" },
+  { value: 0.40, label: "+40%", color: "#64748B" },
+  { value: 0.60, label: "+60%", color: "#475569" },
+];
+
 function ArrYoYChart({ data }) {
   const W = 1100;
   const H = 280;
-  const pad = { top: 18, right: 28, bottom: 50, left: 72 };
+  const pad = { top: 18, right: 90, bottom: 50, left: 72 };
   const iW = W - pad.left - pad.right;
   const iH = H - pad.top - pad.bottom;
 
@@ -196,7 +202,7 @@ function ArrYoYChart({ data }) {
 
   const yoys = data.map((d) => d.yoy);
   const rawMin = Math.min(...yoys);
-  const rawMax = Math.max(...yoys);
+  const rawMax = Math.max(Math.max(...yoys), ...ARR_YOY_REFS.map((r) => r.value));
   const steps = [0.05, 0.1, 0.2, 0.25, 0.5, 1.0];
   const roughStep = (rawMax - rawMin) / 5;
   const tickStep = steps.find((s) => s >= roughStep) ?? steps.at(-1);
@@ -222,15 +228,15 @@ function ArrYoYChart({ data }) {
   }
 
   const last = data.at(-1);
-  const zeroY = py(0);
+  const xEnd = pad.left + iW;
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="chart-svg">
       {yTicks.map((v) => (
         <g key={v}>
           <line
-            x1={pad.left} y1={py(v).toFixed(1)} x2={W - pad.right} y2={py(v).toFixed(1)}
-            stroke={v === 0 ? "#94A3B8" : "#E2E8F0"} strokeWidth={v === 0 ? 1 : 1}
+            x1={pad.left} y1={py(v).toFixed(1)} x2={xEnd} y2={py(v).toFixed(1)}
+            stroke={v === 0 ? "#94A3B8" : "#E2E8F0"} strokeWidth="1"
             strokeDasharray={v === 0 ? "4 3" : undefined}
           />
           <text x={pad.left - 8} y={(py(v) + 4).toFixed(1)} textAnchor="end" fontSize="12" fill="#A0AEC0">
@@ -238,15 +244,25 @@ function ArrYoYChart({ data }) {
           </text>
         </g>
       ))}
+
+      {ARR_YOY_REFS.map(({ value, label, color }) => {
+        const y = py(value).toFixed(1);
+        return (
+          <g key={label}>
+            <line x1={pad.left} y1={y} x2={xEnd} y2={y} stroke={color} strokeWidth="1.2" strokeDasharray="6 3" />
+            <text x={xEnd + 6} y={(py(value) + 4).toFixed(1)} fontSize="11" fill={color} fontWeight="600">{label}</text>
+          </g>
+        );
+      })}
+
       {yearLabels.map(({ x, label }) => (
         <text key={label} x={x.toFixed(1)} y={H - pad.bottom + 18} textAnchor="middle" fontSize="11" fill="#A0AEC0">{label}</text>
       ))}
       <path d={pathD} fill="none" stroke="#22c55e" strokeWidth="1.8" />
       <circle cx={px(last).toFixed(1)} cy={py(last.yoy).toFixed(1)} r="4" fill="#22c55e" />
       <text
-        x={px(last).toFixed(1)} y={(py(last.yoy) - 10).toFixed(1)}
-        textAnchor={px(last) > W - 80 ? "end" : "middle"}
-        fontSize="12" fill="#22c55e" fontWeight="600"
+        x={(px(last) - 8).toFixed(1)} y={(py(last.yoy) - 10).toFixed(1)}
+        textAnchor="end" fontSize="12" fill="#22c55e" fontWeight="600"
       >
         {(last.yoy * 100).toFixed(1)}%
       </text>

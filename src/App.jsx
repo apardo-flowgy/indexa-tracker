@@ -185,6 +185,75 @@ function AumChart({ data }) {
   );
 }
 
+function ArrYoYChart({ data }) {
+  const W = 1100;
+  const H = 280;
+  const pad = { top: 18, right: 28, bottom: 50, left: 72 };
+  const iW = W - pad.left - pad.right;
+  const iH = H - pad.top - pad.bottom;
+
+  if (!data?.length) return null;
+
+  const yoys = data.map((d) => d.yoy);
+  const rawMin = Math.min(...yoys);
+  const rawMax = Math.max(...yoys);
+  const steps = [0.05, 0.1, 0.2, 0.25, 0.5, 1.0];
+  const roughStep = (rawMax - rawMin) / 5;
+  const tickStep = steps.find((s) => s >= roughStep) ?? steps.at(-1);
+  const minVal = Math.floor(rawMin / tickStep) * tickStep;
+  const maxVal = Math.ceil(rawMax / tickStep) * tickStep;
+  const range = maxVal - minVal || 1;
+
+  const startMs = data[0].date.getTime();
+  const endMs = data.at(-1).date.getTime();
+  const timeRange = endMs - startMs || 1;
+  const px = (d) => pad.left + ((d.date.getTime() - startMs) / timeRange) * iW;
+  const py = (v) => pad.top + iH * (1 - (v - minVal) / range);
+  const pathD = data.map((d, i) => `${i === 0 ? "M" : "L"}${px(d).toFixed(1)},${py(d.yoy).toFixed(1)}`).join(" ");
+
+  const yTicks = [];
+  for (let v = minVal; v <= maxVal + 0.001; v += tickStep) yTicks.push(Math.round(v * 1000) / 1000);
+
+  const yearLabels = [];
+  const seen = new Set();
+  for (const d of data) {
+    const y = d.date.getFullYear();
+    if (d.date.getMonth() === 0 && !seen.has(y)) { seen.add(y); yearLabels.push({ x: px(d), label: String(y) }); }
+  }
+
+  const last = data.at(-1);
+  const zeroY = py(0);
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="chart-svg">
+      {yTicks.map((v) => (
+        <g key={v}>
+          <line
+            x1={pad.left} y1={py(v).toFixed(1)} x2={W - pad.right} y2={py(v).toFixed(1)}
+            stroke={v === 0 ? "#94A3B8" : "#E2E8F0"} strokeWidth={v === 0 ? 1 : 1}
+            strokeDasharray={v === 0 ? "4 3" : undefined}
+          />
+          <text x={pad.left - 8} y={(py(v) + 4).toFixed(1)} textAnchor="end" fontSize="12" fill="#A0AEC0">
+            {(v * 100).toFixed(0)}%
+          </text>
+        </g>
+      ))}
+      {yearLabels.map(({ x, label }) => (
+        <text key={label} x={x.toFixed(1)} y={H - pad.bottom + 18} textAnchor="middle" fontSize="11" fill="#A0AEC0">{label}</text>
+      ))}
+      <path d={pathD} fill="none" stroke="#22c55e" strokeWidth="1.8" />
+      <circle cx={px(last).toFixed(1)} cy={py(last.yoy).toFixed(1)} r="4" fill="#22c55e" />
+      <text
+        x={px(last).toFixed(1)} y={(py(last.yoy) - 10).toFixed(1)}
+        textAnchor={px(last) > W - 80 ? "end" : "middle"}
+        fontSize="12" fill="#22c55e" fontWeight="600"
+      >
+        {(last.yoy * 100).toFixed(1)}%
+      </text>
+    </svg>
+  );
+}
+
 function InflowsChart({ data }) {
   const W = 1040;
   const H = 250;
@@ -668,6 +737,7 @@ export default function App() {
     seasonalityMonthly,
     seasonalityQuarterly,
     annualInflows,
+    arrYoySeries,
   } = tracker;
 
   const today = new Date();
@@ -718,6 +788,19 @@ export default function App() {
               info={<><p>Estimacion del AUM a 31 de diciembre calculada como:</p><p style={{marginTop:6, fontFamily:"monospace", fontSize:"0.82em", background:"rgba(255,255,255,0.08)", padding:"4px 8px", borderRadius:4}}>AUM × (1 + 5%/12)^meses + aportaciones_medias × meses</p><p style={{marginTop:6}}>Se asume un 5% anual de rentabilidad de mercado y se extrapola el ritmo de aportaciones netas de los ultimos 3 meses.</p></>}
             />
           </div>
+        </section>
+
+        <section className="chart-section">
+          <div className="chart-top">
+            <div>
+              <div className="chart-title-row">
+                <h2>YoY diario de ARR</h2>
+                <InfoTooltip><p>Crecimiento interanual del ARR (Ingresos Anuales Recurrentes) dia a dia desde 2022. Para cada fecha se compara el ARR con el valor del mismo dia hace 12 meses, tomando el dato mas reciente disponible si no existe exactamente. Replica la logica de BUSCARX con coincidencia aproximada que se usa habitualmente en Excel para seguimiento diario.</p></InfoTooltip>
+              </div>
+              <p>ARR actual / ARR hace 12 meses − 1 · datos diarios desde 2022</p>
+            </div>
+          </div>
+          <ArrYoYChart data={arrYoySeries} />
         </section>
 
         <section className="chart-section">

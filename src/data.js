@@ -177,6 +177,26 @@ function yearlyFromMonthly(monthlyRows) {
   }));
 }
 
+function buildArrYoySeries(revenueRows) {
+  const result = [];
+  for (let i = 0; i < revenueRows.length; i++) {
+    const row = revenueRows[i];
+    const target = new Date(row.date);
+    target.setMonth(target.getMonth() - 12);
+    const targetMs = target.getTime();
+    let lo = 0, hi = i - 1, found = -1;
+    while (lo <= hi) {
+      const mid = (lo + hi) >> 1;
+      if (revenueRows[mid].date.getTime() <= targetMs) { found = mid; lo = mid + 1; }
+      else hi = mid - 1;
+    }
+    if (found >= 0 && revenueRows[found].arr > 0) {
+      result.push({ date: row.date, yoy: row.arr / revenueRows[found].arr - 1 });
+    }
+  }
+  return result.filter((r) => r.date.getFullYear() >= 2022);
+}
+
 function normalizeVolumeRows(rows) {
   return sortByDate(
     rows.map((row) => ({
@@ -630,6 +650,7 @@ export function buildTrackerData(dataset) {
       year: row.year,
       inflows: row.inflowsAnnual,
     }));
+  const arrYoySeries = buildArrYoySeries(dataset.revenueRows);
 
   return {
     currentAum, currentArr, lastDate,
@@ -638,6 +659,6 @@ export function buildTrackerData(dataset) {
     avgMonthlyInflow, projectedYeAum, targetYearEnd, paceDeltaPct,
     chartData, decomposition,
     seasonalityMonthly, seasonalityQuarterly,
-    annualInflows,
+    annualInflows, arrYoySeries,
   };
 }

@@ -177,6 +177,33 @@ function yearlyFromMonthly(monthlyRows) {
   }));
 }
 
+function buildArrYearlyIndexSeries(revenueRows) {
+  const byYear = new Map();
+  for (const row of revenueRows) {
+    const y = row.date.getFullYear();
+    if (!byYear.has(y)) byYear.set(y, []);
+    byYear.get(y).push(row);
+  }
+  return [...byYear.entries()]
+    .filter(([y]) => y >= 2019)
+    .sort(([a], [b]) => a - b)
+    .map(([year, rows]) => {
+      const yearStartMs = new Date(`${year}-01-01T00:00:00`).getTime();
+      const yearEndMs   = new Date(`${year + 1}-01-01T00:00:00`).getTime();
+      const duration    = yearEndMs - yearStartMs;
+      const baseArr     = rows[0].arr;
+      if (!baseArr || baseArr <= 0) return null;
+      return {
+        year,
+        data: rows.map((row) => ({
+          x:   (row.date.getTime() - yearStartMs) / duration, // 0 = 1 ene, 1 = 31 dic
+          pct: row.arr / baseArr - 1,
+        })),
+      };
+    })
+    .filter(Boolean);
+}
+
 function buildArrYoySeries(revenueRows) {
   const result = [];
   for (let i = 0; i < revenueRows.length; i++) {
@@ -650,7 +677,8 @@ export function buildTrackerData(dataset) {
       year: row.year,
       inflows: row.inflowsAnnual,
     }));
-  const arrYoySeries = buildArrYoySeries(dataset.revenueRows);
+  const arrYoySeries       = buildArrYoySeries(dataset.revenueRows);
+  const arrYearlyIndex     = buildArrYearlyIndexSeries(dataset.revenueRows);
 
   return {
     currentAum, currentArr, lastDate,
@@ -659,6 +687,6 @@ export function buildTrackerData(dataset) {
     avgMonthlyInflow, projectedYeAum, targetYearEnd, paceDeltaPct,
     chartData, decomposition,
     seasonalityMonthly, seasonalityQuarterly,
-    annualInflows, arrYoySeries,
+    annualInflows, arrYoySeries, arrYearlyIndex,
   };
 }

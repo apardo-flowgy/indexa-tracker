@@ -270,6 +270,93 @@ function ArrYoYChart({ data }) {
   );
 }
 
+// ── ARR rebaseado a inicio de año ─────────────────────────────────────────────
+const YEARLY_PALETTE = [
+  { year: 2019, color: "#94A3B8", width: 1.2 },
+  { year: 2020, color: "#7DD3FC", width: 1.2 },
+  { year: 2021, color: "#A78BFA", width: 1.2 },
+  { year: 2022, color: "#F472B6", width: 1.2 },
+  { year: 2023, color: "#FB923C", width: 1.5 },
+  { year: 2024, color: "#FBBF24", width: 1.5 },
+  { year: 2025, color: "#34D399", width: 2 },
+  { year: 2026, color: "#22c55e", width: 2.5 },
+];
+const MONTH_LABELS = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+
+function ArrYearlyIndexChart({ data }) {
+  const W = 1100;
+  const H = 320;
+  const pad = { top: 24, right: 52, bottom: 50, left: 72 };
+  const iW = W - pad.left - pad.right;
+  const iH = H - pad.top - pad.bottom;
+
+  if (!data?.length) return null;
+
+  const allPcts = data.flatMap((s) => s.data.map((d) => d.pct));
+  const rawMax = Math.max(...allPcts, 0.1);
+  const steps = [0.1, 0.2, 0.25, 0.5, 1.0, 2.0];
+  const tickStep = steps.find((s) => s >= rawMax / 5) ?? steps.at(-1);
+  const maxVal = Math.ceil(rawMax / tickStep) * tickStep;
+  const range = maxVal || 1;
+
+  const px = (x) => pad.left + x * iW;
+  const py = (v) => pad.top + iH * (1 - v / range);
+  const colorMap = new Map(YEARLY_PALETTE.map((c) => [c.year, c]));
+
+  const yTicks = [];
+  for (let v = 0; v <= maxVal + 0.001; v += tickStep) yTicks.push(Math.round(v * 1000) / 1000);
+
+  // Nudge labels apart if they're too close vertically
+  const MIN_GAP = 13;
+  const labelItems = [...data]
+    .sort((a, b) => b.data.at(-1).pct - a.data.at(-1).pct)
+    .map((series) => ({ series, cfg: colorMap.get(series.year) ?? { color: "#94A3B8", width: 1 }, last: series.data.at(-1), labelY: 0 }));
+  const placed = [];
+  for (const item of labelItems) {
+    let y = py(item.last.pct);
+    for (const p of placed) { if (Math.abs(y - p) < MIN_GAP) y = p + MIN_GAP; }
+    placed.push(y);
+    item.labelY = y;
+  }
+
+  const currentYear = new Date().getFullYear();
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="chart-svg">
+      {yTicks.map((v) => (
+        <g key={v}>
+          <line x1={pad.left} y1={py(v).toFixed(1)} x2={pad.left + iW} y2={py(v).toFixed(1)} stroke="#E2E8F0" strokeWidth="1" />
+          <text x={pad.left - 8} y={(py(v) + 4).toFixed(1)} textAnchor="end" fontSize="12" fill="#A0AEC0">
+            +{(v * 100).toFixed(0)}%
+          </text>
+        </g>
+      ))}
+      {MONTH_LABELS.map((label, i) => {
+        const x = px(i / 12).toFixed(1);
+        return (
+          <g key={label}>
+            <line x1={x} y1={pad.top} x2={x} y2={pad.top + iH} stroke="#E2E8F0" strokeWidth="1" strokeDasharray="2 4" />
+            <text x={x} y={H - pad.bottom + 18} textAnchor="middle" fontSize="11" fill="#A0AEC0">{label}</text>
+          </g>
+        );
+      })}
+      {data.map((series) => {
+        const cfg = colorMap.get(series.year) ?? { color: "#94A3B8", width: 1 };
+        const pathD = series.data.map((d, i) => `${i === 0 ? "M" : "L"}${px(d.x).toFixed(1)},${py(d.pct).toFixed(1)}`).join(" ");
+        return <path key={series.year} d={pathD} fill="none" stroke={cfg.color} strokeWidth={cfg.width} opacity={series.year === currentYear ? 1 : 0.7} />;
+      })}
+      {labelItems.map(({ series, cfg, last, labelY }) => (
+        <text key={series.year} x={(px(last.x) + 6).toFixed(1)} y={labelY.toFixed(1)}
+          fontSize={series.year === currentYear ? 12 : 11} fill={cfg.color}
+          fontWeight={series.year === currentYear ? "700" : "400"}
+        >
+          {series.year}{series.year === currentYear ? ` +${(last.pct * 100).toFixed(1)}%` : ""}
+        </text>
+      ))}
+    </svg>
+  );
+}
+
 function InflowsChart({ data }) {
   const W = 1040;
   const H = 250;
@@ -754,6 +841,7 @@ export default function App() {
     seasonalityQuarterly,
     annualInflows,
     arrYoySeries,
+    arrYearlyIndex,
   } = tracker;
 
   const today = new Date();
@@ -817,6 +905,19 @@ export default function App() {
             </div>
           </div>
           <ArrYoYChart data={arrYoySeries} />
+        </section>
+
+        <section className="chart-section">
+          <div className="chart-top">
+            <div>
+              <div className="chart-title-row">
+                <h2>ARR indexado a inicio de año · comparativa anual</h2>
+                <InfoTooltip><p>Cada linea parte de 0% el 1 de enero y muestra cuanto creció el ARR a lo largo de ese año. Permite comparar la velocidad de crecimiento dentro del año independientemente del nivel absoluto: si 2026 crece más rápido que 2025 en el mismo periodo del año, es una señal de aceleración real y no de efecto base.</p></InfoTooltip>
+              </div>
+              <p>ARR relativo a su valor a 1 de enero de cada año · datos diarios desde 2019</p>
+            </div>
+          </div>
+          <ArrYearlyIndexChart data={arrYearlyIndex} />
         </section>
 
         <section className="chart-section">

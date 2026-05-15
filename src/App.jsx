@@ -709,7 +709,7 @@ function SeasonalityChart({ data }) {
               stroke="#E2E8F0"
               strokeWidth="1"
             />
-            <text x={pad.left - 8} y={(pointY(value) + 4).toFixed(1)} textAnchor="end" fontSize="12" fill="#94A3B8">
+            <text x={pad.left - 8} y={(pointY(value) + 4).toFixed(1)} textAnchor="end" fontSize="16" fill="#94A3B8">
               {fmtPctPoint(value)}
             </text>
           </g>
@@ -745,7 +745,7 @@ function SeasonalityChart({ data }) {
         })}
 
         {data.categories.map((label, index) => (
-          <text key={label} x={pointX(index).toFixed(1)} y={H - 10} textAnchor="middle" fontSize="12" fill="#94A3B8">
+          <text key={label} x={pointX(index).toFixed(1)} y={H - 10} textAnchor="middle" fontSize="16" fill="#94A3B8">
             {label}
           </text>
         ))}
@@ -789,7 +789,7 @@ function AnnualInflowsChart({ data, projection }) {
             stroke="#E2E8F0"
             strokeWidth="1"
           />
-          <text x={pad.left - 8} y={(yScale(value) + 4).toFixed(1)} textAnchor="end" fontSize="12" fill="#A0AEC0">
+          <text x={pad.left - 8} y={(yScale(value) + 4).toFixed(1)} textAnchor="end" fontSize="16" fill="#A0AEC0">
             {euroCompact.format(value)}
           </text>
         </g>
@@ -813,16 +813,16 @@ function AnnualInflowsChart({ data, projection }) {
               fill={item.inflows >= 0 ? "#2563EB" : "#DC2626"} opacity="0.88" rx="4" />
             {showProj && (
               <text x={cx.toFixed(1)} y={(yScale(projection) - 5).toFixed(1)}
-                textAnchor="middle" fontSize="10" fill="#64748B">
+                textAnchor="middle" fontSize="14" fill="#64748B">
                 {euroCompact.format(projection)} ↑
               </text>
             )}
             <text x={cx.toFixed(1)}
               y={(item.inflows >= 0 ? barY(item.inflows) - 8 : barY(item.inflows) + barH(item.inflows) + 16).toFixed(1)}
-              textAnchor="middle" fontSize="11" fill={item.inflows >= 0 ? "#1E3A8A" : "#991B1B"}>
+              textAnchor="middle" fontSize="15" fill={item.inflows >= 0 ? "#1E3A8A" : "#991B1B"}>
               {euroCompact.format(item.inflows)}
             </text>
-            <text x={cx.toFixed(1)} y={H - 8} textAnchor="middle" fontSize="12" fill="#A0AEC0">
+            <text x={cx.toFixed(1)} y={H - 8} textAnchor="middle" fontSize="16" fill="#A0AEC0">
               {item.year}{isLast ? "*" : ""}
             </text>
           </g>
@@ -870,7 +870,7 @@ function MonthlyInflowsChart({ data, projection }) {
         <g key={idx}>
           <line x1={pad.left} y1={yScale(v).toFixed(1)} x2={W - pad.right} y2={yScale(v).toFixed(1)}
             stroke="#E2E8F0" strokeWidth="1" />
-          <text x={pad.left - 8} y={(yScale(v) + 4).toFixed(1)} textAnchor="end" fontSize="12" fill="#A0AEC0">
+          <text x={pad.left - 8} y={(yScale(v) + 4).toFixed(1)} textAnchor="end" fontSize="16" fill="#A0AEC0">
             {euroCompact.format(v)}
           </text>
         </g>
@@ -907,7 +907,7 @@ function MonthlyInflowsChart({ data, projection }) {
       {yearTicks.map(({ d, i }) => (
         <text key={d.date.getFullYear()}
           x={xCenter(i).toFixed(1)} y={H - pad.bottom + 16}
-          textAnchor="middle" fontSize="11" fill="#94A3B8">
+          textAnchor="middle" fontSize="15" fill="#94A3B8">
           {d.date.getFullYear()}
         </text>
       ))}
@@ -999,7 +999,7 @@ function StackedComparisonBarChart({ data }) {
         <g key={i}>
           <line x1={pad.left} y1={yScale(v).toFixed(1)} x2={W - pad.right} y2={yScale(v).toFixed(1)}
             stroke="#E2E8F0" strokeWidth="1" />
-          <text x={pad.left - 8} y={(yScale(v) + 4).toFixed(1)} textAnchor="end" fontSize="12" fill="#A0AEC0">
+          <text x={pad.left - 8} y={(yScale(v) + 4).toFixed(1)} textAnchor="end" fontSize="16" fill="#A0AEC0">
             {euroCompact.format(v)}
           </text>
         </g>
@@ -1051,7 +1051,7 @@ function StackedComparisonBarChart({ data }) {
             )}
 
             {/* Year label */}
-            <text x={cx.toFixed(1)} y={H - pad.bottom + 16} textAnchor="middle" fontSize="11"
+            <text x={cx.toFixed(1)} y={H - pad.bottom + 18} textAnchor="middle" fontSize="15"
               fill={item.isCurrent ? "#15803D" : "#A0AEC0"} fontWeight={item.isCurrent ? "700" : "400"}>
               {item.year}
             </text>

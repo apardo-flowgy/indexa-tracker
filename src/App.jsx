@@ -686,17 +686,17 @@ function SeasonalityChart({ data }) {
   );
 }
 
-function AnnualInflowsChart({ data }) {
+function AnnualInflowsChart({ data, projection }) {
   const W = 1040;
   const H = 300;
-  const pad = { top: 18, right: 24, bottom: 48, left: 86 };
+  const pad = { top: 24, right: 24, bottom: 48, left: 86 };
   const iW = W - pad.left - pad.right;
   const iH = H - pad.top - pad.bottom;
 
   if (!data?.length) return null;
 
   const values = data.map((item) => item.inflows);
-  const maxVal = Math.max(...values, 0) * 1.12;
+  const maxVal = Math.max(...values, projection ?? 0, 0) * 1.12;
   const minVal = Math.min(...values, 0) * 1.12;
   const range = maxVal - minVal || 1;
   const slotW = iW / data.length;
@@ -729,42 +729,42 @@ function AnnualInflowsChart({ data }) {
 
       <line x1={pad.left} y1={zeroY.toFixed(1)} x2={W - pad.right} y2={zeroY.toFixed(1)} stroke="#94A3B8" strokeWidth="0.8" />
 
-      {data.map((item, index) => (
-        <g key={item.year}>
-          <rect
-            x={xLeft(index).toFixed(1)}
-            y={barY(item.inflows).toFixed(1)}
-            width={barW.toFixed(1)}
-            height={Math.max(1, barH(item.inflows)).toFixed(1)}
-            fill={item.inflows >= 0 ? "#2563EB" : "#DC2626"}
-            opacity="0.88"
-            rx="4"
-          />
-          <text
-            x={(xLeft(index) + barW / 2).toFixed(1)}
-            y={(item.inflows >= 0 ? barY(item.inflows) - 8 : barY(item.inflows) + barH(item.inflows) + 16).toFixed(1)}
-            textAnchor="middle"
-            fontSize="11"
-            fill={item.inflows >= 0 ? "#1E3A8A" : "#991B1B"}
-          >
-            {euroCompact.format(item.inflows)}
-          </text>
-          <text
-            x={(xLeft(index) + barW / 2).toFixed(1)}
-            y={H - 8}
-            textAnchor="middle"
-            fontSize="12"
-            fill="#A0AEC0"
-          >
-            {item.year}
-          </text>
-        </g>
-      ))}
+      {data.map((item, index) => {
+        const isLast = index === data.length - 1;
+        const cx = xLeft(index) + barW / 2;
+        const showProj = isLast && projection != null && projection > item.inflows;
+        return (
+          <g key={item.year}>
+            {showProj && (
+              <rect x={xLeft(index).toFixed(1)} y={yScale(projection).toFixed(1)}
+                width={barW.toFixed(1)} height={(yScale(item.inflows) - yScale(projection)).toFixed(1)}
+                fill="#3B82F6" opacity="0.25" rx="4" />
+            )}
+            <rect x={xLeft(index).toFixed(1)} y={barY(item.inflows).toFixed(1)}
+              width={barW.toFixed(1)} height={Math.max(1, barH(item.inflows)).toFixed(1)}
+              fill={item.inflows >= 0 ? "#2563EB" : "#DC2626"} opacity="0.88" rx="4" />
+            {showProj && (
+              <text x={cx.toFixed(1)} y={(yScale(projection) - 5).toFixed(1)}
+                textAnchor="middle" fontSize="10" fill="#64748B">
+                {euroCompact.format(projection)} ↑
+              </text>
+            )}
+            <text x={cx.toFixed(1)}
+              y={(item.inflows >= 0 ? barY(item.inflows) - 8 : barY(item.inflows) + barH(item.inflows) + 16).toFixed(1)}
+              textAnchor="middle" fontSize="11" fill={item.inflows >= 0 ? "#1E3A8A" : "#991B1B"}>
+              {euroCompact.format(item.inflows)}
+            </text>
+            <text x={cx.toFixed(1)} y={H - 8} textAnchor="middle" fontSize="12" fill="#A0AEC0">
+              {item.year}{isLast ? "*" : ""}
+            </text>
+          </g>
+        );
+      })}
     </svg>
   );
 }
 
-function MonthlyInflowsChart({ data }) {
+function MonthlyInflowsChart({ data, projection }) {
   const W = 1100;
   const H = 280;
   const pad = { top: 20, right: 24, bottom: 44, left: 86 };
@@ -774,7 +774,7 @@ function MonthlyInflowsChart({ data }) {
   if (!data?.length) return null;
 
   const values  = data.map((d) => d.inflows);
-  const maxVal  = Math.max(...values, 0) * 1.12;
+  const maxVal  = Math.max(...values, projection ?? 0, 0) * 1.12;
   const minVal  = Math.min(...values, 0) * 1.12;
   const range   = maxVal - minVal || 1;
   const slotW   = iW / data.length;
@@ -812,14 +812,23 @@ function MonthlyInflowsChart({ data }) {
 
       {/* Monthly bars */}
       {data.map((item, i) => {
-        const x  = pad.left + i * slotW + (slotW - barW) / 2;
-        const bY = item.inflows >= 0 ? yScale(item.inflows) : zeroY;
-        const bH = Math.max(1, Math.abs((item.inflows / range) * iH));
+        const isLast = i === data.length - 1;
+        const x   = pad.left + i * slotW + (slotW - barW) / 2;
+        const bY  = item.inflows >= 0 ? yScale(item.inflows) : zeroY;
+        const bH  = Math.max(1, Math.abs((item.inflows / range) * iH));
+        const showProj = isLast && projection != null && projection > item.inflows;
         return (
-          <rect key={i} x={x.toFixed(1)} y={bY.toFixed(1)}
-            width={barW.toFixed(1)} height={bH.toFixed(1)}
-            fill={item.inflows >= 0 ? "#3B82F6" : "#EF4444"}
-            opacity="0.75" rx="1" />
+          <g key={i}>
+            {showProj && (
+              <rect x={x.toFixed(1)} y={yScale(projection).toFixed(1)}
+                width={barW.toFixed(1)} height={(yScale(item.inflows) - yScale(projection)).toFixed(1)}
+                fill="#3B82F6" opacity="0.22" rx="1" />
+            )}
+            <rect x={x.toFixed(1)} y={bY.toFixed(1)}
+              width={barW.toFixed(1)} height={bH.toFixed(1)}
+              fill={item.inflows >= 0 ? "#3B82F6" : "#EF4444"}
+              opacity="0.75" rx="1" />
+          </g>
         );
       })}
 
@@ -834,6 +843,64 @@ function MonthlyInflowsChart({ data }) {
           {d.date.getFullYear()}
         </text>
       ))}
+    </svg>
+  );
+}
+
+function ComparisonBarChart({ data }) {
+  const W = 820;
+  const H = 300;
+  const pad = { top: 24, right: 20, bottom: 48, left: 86 };
+  const iW = W - pad.left - pad.right;
+  const iH = H - pad.top - pad.bottom;
+  if (!data?.length) return null;
+
+  const values = data.map((d) => d.inflows);
+  const maxVal = Math.max(...values, 0) * 1.15;
+  const minVal = Math.min(...values, 0) * 1.15;
+  const range  = maxVal - minVal || 1;
+  const n      = data.length;
+  const slotW  = iW / n;
+  const barW   = Math.min(slotW * 0.65, 52);
+
+  const yScale = (v) => pad.top + iH * (1 - (v - minVal) / range);
+  const zeroY  = yScale(0);
+  const yTicks = [0, 0.25, 0.5, 0.75, 1].map((r) => minVal + r * range);
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="chart-svg">
+      {yTicks.map((v, i) => (
+        <g key={i}>
+          <line x1={pad.left} y1={yScale(v).toFixed(1)} x2={W - pad.right} y2={yScale(v).toFixed(1)}
+            stroke="#E2E8F0" strokeWidth="1" />
+          <text x={pad.left - 8} y={(yScale(v) + 4).toFixed(1)} textAnchor="end" fontSize="12" fill="#A0AEC0">
+            {euroCompact.format(v)}
+          </text>
+        </g>
+      ))}
+      <line x1={pad.left} y1={zeroY.toFixed(1)} x2={W - pad.right} y2={zeroY.toFixed(1)} stroke="#94A3B8" strokeWidth="0.8" />
+
+      {data.map((item, i) => {
+        const cx  = pad.left + (i + 0.5) * slotW;
+        const x   = cx - barW / 2;
+        const bY  = item.inflows >= 0 ? yScale(item.inflows) : zeroY;
+        const bH  = Math.max(1, Math.abs((item.inflows / range) * iH));
+        const fill = item.isCurrent ? "#22C55E" : (item.inflows >= 0 ? "#3B82F6" : "#EF4444");
+        return (
+          <g key={item.year}>
+            <rect x={x.toFixed(1)} y={bY.toFixed(1)} width={barW.toFixed(1)} height={bH.toFixed(1)}
+              fill={fill} opacity={item.isCurrent ? 1 : 0.82} rx="3" />
+            <text x={cx.toFixed(1)} y={(bY - 5).toFixed(1)} textAnchor="middle" fontSize="9.5"
+              fill={item.isCurrent ? "#15803D" : "#718096"}>
+              {euroCompact.format(item.inflows)}
+            </text>
+            <text x={cx.toFixed(1)} y={H - pad.bottom + 16} textAnchor="middle" fontSize="11"
+              fill={item.isCurrent ? "#15803D" : "#A0AEC0"} fontWeight={item.isCurrent ? "700" : "400"}>
+              {item.year}
+            </text>
+          </g>
+        );
+      })}
     </svg>
   );
 }
@@ -1054,6 +1121,10 @@ export default function App() {
     seasonalityQuarterly,
     annualInflows,
     monthlyInflowsData,
+    ytdComparison,
+    mtdComparison,
+    annualProjection,
+    monthlyProjection,
     arrYoySeries,
     arrYearlyIndex,
     twrData,
@@ -1176,30 +1247,58 @@ export default function App() {
           <AumChart data={chartData} />
         </section>
 
-        <section className="chart-section">
-          <div className="chart-top">
-            <div>
-              <div className="chart-title-row">
-                <h2>Aportaciones netas anuales</h2>
-                <InfoTooltip><p>Suma de todas las aportaciones netas brutas de cada ano (entradas menos salidas de dinero). <strong>No incluye la rentabilidad generada por los mercados</strong>, solo el crecimiento organico. Permite ver si el negocio esta captando mas capital ano a ano.</p></InfoTooltip>
+        <section className="seasonality-grid">
+          <article className="chart-section">
+            <div className="chart-top">
+              <div>
+                <div className="chart-title-row">
+                  <h2>Aportaciones netas anuales</h2>
+                  <InfoTooltip><p>Suma de aportaciones netas de cada ano. La barra del ano en curso muestra el acumulado hasta el ultimo dato; la extension transparente es la proyeccion al cierre del ano al ritmo actual. * = dato parcial.</p></InfoTooltip>
+                </div>
+                <p>Vision agregada por ano · * proyeccion al cierre del ano al ritmo actual</p>
               </div>
-              <p>Vision agregada por ano para ver la aceleracion del negocio sin ruido mensual</p>
             </div>
-          </div>
-          <AnnualInflowsChart data={annualInflows} />
+            <AnnualInflowsChart data={annualInflows} projection={annualProjection} />
+          </article>
+          <article className="chart-section">
+            <div className="chart-top">
+              <div>
+                <div className="chart-title-row">
+                  <h2>YTD — comparativa entre anos</h2>
+                  <InfoTooltip><p>Aportaciones netas acumuladas desde el 1 de enero hasta el mismo dia del ano que el ultimo dato disponible. Todos los anos se cortan en el mismo punto del calendario para que la comparacion sea justa independientemente de cuanto quede de ano.</p></InfoTooltip>
+                </div>
+                <p>Acumulado 1 ene → {lastDate ? `${lastDate.getDate()} ${MONTH_LABELS[lastDate.getMonth()]}` : "hoy"} de cada ano · verde = ano actual</p>
+              </div>
+            </div>
+            <ComparisonBarChart data={ytdComparison} />
+          </article>
         </section>
 
-        <section className="chart-section">
-          <div className="chart-top">
-            <div>
-              <div className="chart-title-row">
-                <h2>Aportaciones netas mensuales</h2>
-                <InfoTooltip><p>Entradas menos salidas de dinero cada mes desde 2016. La linea amarilla es la media movil de 12 meses, que suaviza la estacionalidad y muestra la tendencia subyacente del negocio. Meses en rojo indican reembolsos netos (salida de capital).</p></InfoTooltip>
+        <section className="seasonality-grid">
+          <article className="chart-section">
+            <div className="chart-top">
+              <div>
+                <div className="chart-title-row">
+                  <h2>Aportaciones netas mensuales</h2>
+                  <InfoTooltip><p>Entradas menos salidas de dinero cada mes desde 2016. La linea amarilla es la media movil de 12 meses. La extension transparente en el ultimo mes es la proyeccion al cierre del mes al ritmo actual.</p></InfoTooltip>
+                </div>
+                <p>Barras azules: mes completo · extension translucida: proyeccion fin de mes · linea: media movil 12m</p>
               </div>
-              <p>Barras azules: aportacion mensual · Linea amarilla: media movil 12 meses</p>
             </div>
-          </div>
-          <MonthlyInflowsChart data={monthlyInflowsData} />
+            <MonthlyInflowsChart data={monthlyInflowsData} projection={monthlyProjection} />
+          </article>
+          <article className="chart-section">
+            <div className="chart-top">
+              <div>
+                <div className="chart-title-row">
+                  <h2>MTD — comparativa entre anos</h2>
+                  <InfoTooltip><p>Aportaciones netas del mes en curso acumuladas del dia 1 al mismo dia del mes que el ultimo dato. Permite comparar si este mes esta siendo mas fuerte o debil que el mismo periodo del mismo mes en anos anteriores.</p></InfoTooltip>
+                </div>
+                <p>Del 1 al {lastDate?.getDate() ?? "?"} de {lastDate ? MONTH_LABELS[lastDate.getMonth()] : "—"} de cada ano · verde = ano actual</p>
+              </div>
+            </div>
+            <ComparisonBarChart data={mtdComparison} />
+          </article>
         </section>
 
         <section className="seasonality-grid">

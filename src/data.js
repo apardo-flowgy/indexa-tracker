@@ -731,6 +731,26 @@ export function buildTrackerData(dataset) {
     };
   });
 
+  // ── YTD / MTD comparison & projections ──────────────────────────────────────
+  const _ld = dataset.volumeRows.at(-1)?.date ?? new Date();
+  const _ly = _ld.getFullYear(), _lm = _ld.getMonth(), _lday = _ld.getDate();
+  const _ytdMap = new Map(), _mtdMap = new Map();
+  for (const row of dataset.volumeRows) {
+    const y = row.date.getFullYear(), m = row.date.getMonth(), d = row.date.getDate();
+    if (m < _lm || (m === _lm && d <= _lday)) _ytdMap.set(y, (_ytdMap.get(y) ?? 0) + row.inflowsDaily);
+    if (m === _lm && d <= _lday)             _mtdMap.set(y, (_mtdMap.get(y) ?? 0) + row.inflowsDaily);
+  }
+  const _mkComp = (map) =>
+    [...map.entries()].filter(([y]) => y >= 2016).sort(([a], [b]) => a - b)
+      .map(([year, inflows]) => ({ year, inflows, isCurrent: year === _ly }));
+  const ytdComparison   = _mkComp(_ytdMap);
+  const mtdComparison   = _mkComp(_mtdMap);
+  const _isLeap   = (y) => y % 4 === 0 && (y % 100 !== 0 || y % 400 === 0);
+  const _doy      = Math.round((_ld.getTime() - new Date(_ly, 0, 1).getTime()) / 86400e3) + 1;
+  const annualProjection  = _doy > 0 ? (_ytdMap.get(_ly) ?? 0) * (_isLeap(_ly) ? 366 : 365) / _doy : null;
+  const _dimCurr          = new Date(_ly, _lm + 1, 0).getDate();
+  const monthlyProjection = _lday > 0 ? (_mtdMap.get(_ly) ?? 0) * _dimCurr / _lday : null;
+
   const arrYoySeries       = buildArrYoySeries(dataset.revenueRows);
   const arrYearlyIndex     = buildArrYearlyIndexSeries(dataset.revenueRows);
   const twrData            = buildTwrSeries(dataset.volumeRows);
@@ -743,5 +763,6 @@ export function buildTrackerData(dataset) {
     chartData, decomposition,
     seasonalityMonthly, seasonalityQuarterly,
     annualInflows, monthlyInflowsData, arrYoySeries, arrYearlyIndex, twrData,
+    ytdComparison, mtdComparison, annualProjection, monthlyProjection,
   };
 }

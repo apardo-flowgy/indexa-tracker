@@ -905,6 +905,95 @@ function ComparisonBarChart({ data }) {
   );
 }
 
+function StackedComparisonBarChart({ data }) {
+  const W = 820;
+  const H = 340;
+  const pad = { top: 44, right: 20, bottom: 48, left: 86 };
+  const iW = W - pad.left - pad.right;
+  const iH = H - pad.top - pad.bottom;
+  if (!data?.length) return null;
+
+  const allVals = data.flatMap((d) => [d.partial, d.full]).filter((v) => v != null);
+  const maxVal = Math.max(...allVals, 0) * 1.18;
+  const minVal = Math.min(...allVals, 0) * 1.15;
+  const range  = maxVal - minVal || 1;
+  const n      = data.length;
+  const slotW  = iW / n;
+  const barW   = Math.min(slotW * 0.72, 54);
+
+  const yScale = (v) => pad.top + iH * (1 - (v - minVal) / range);
+  const zeroY  = yScale(0);
+  const yTicks = [0, 0.25, 0.5, 0.75, 1].map((r) => minVal + r * range);
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="chart-svg">
+      {yTicks.map((v, i) => (
+        <g key={i}>
+          <line x1={pad.left} y1={yScale(v).toFixed(1)} x2={W - pad.right} y2={yScale(v).toFixed(1)}
+            stroke="#E2E8F0" strokeWidth="1" />
+          <text x={pad.left - 8} y={(yScale(v) + 4).toFixed(1)} textAnchor="end" fontSize="12" fill="#A0AEC0">
+            {euroCompact.format(v)}
+          </text>
+        </g>
+      ))}
+      <line x1={pad.left} y1={zeroY.toFixed(1)} x2={W - pad.right} y2={zeroY.toFixed(1)} stroke="#94A3B8" strokeWidth="0.8" />
+
+      {data.map((item, i) => {
+        const cx = pad.left + (i + 0.5) * slotW;
+        const x  = cx - barW / 2;
+
+        // Background bar = full year/month (or projection for current)
+        const fullFill = item.isCurrent ? "#86EFAC" : (item.full >= 0 ? "#93C5FD" : "#FCA5A5");
+        const fullY = item.full >= 0 ? yScale(item.full) : zeroY;
+        const fullH = Math.max(1, Math.abs((item.full / range) * iH));
+
+        // Foreground bar = partial (comparable slice up to same day)
+        const partFill = item.isCurrent ? "#22C55E" : (item.partial >= 0 ? "#3B82F6" : "#EF4444");
+        const partY = item.partial >= 0 ? yScale(item.partial) : zeroY;
+        const partH = Math.max(1, Math.abs((item.partial / range) * iH));
+
+        // YoY% comparing same-period slice
+        const prev = data[i - 1];
+        const yoyPct = prev && prev.partial ? (item.partial / prev.partial - 1) : null;
+
+        // Place YoY label above the full bar
+        const topY = item.full >= 0 ? fullY : zeroY;
+
+        return (
+          <g key={item.year}>
+            {/* Full / projected bar (background, lighter) */}
+            <rect x={x.toFixed(1)} y={fullY.toFixed(1)} width={barW.toFixed(1)} height={fullH.toFixed(1)}
+              fill={fullFill} opacity={0.45} rx="3" />
+            {/* Partial bar (foreground, solid) */}
+            <rect x={x.toFixed(1)} y={partY.toFixed(1)} width={barW.toFixed(1)} height={partH.toFixed(1)}
+              fill={partFill} opacity={item.isCurrent ? 1 : 0.85} rx="3" />
+
+            {/* Partial value label */}
+            <text x={cx.toFixed(1)} y={(partY - 4).toFixed(1)} textAnchor="middle" fontSize="9"
+              fill={item.isCurrent ? "#15803D" : "#718096"}>
+              {euroCompact.format(item.partial)}
+            </text>
+
+            {/* YoY% label above full bar */}
+            {yoyPct != null && (
+              <text x={cx.toFixed(1)} y={(topY - 6).toFixed(1)} textAnchor="middle" fontSize="9" fontWeight="700"
+                fill={yoyPct >= 0 ? "#059669" : "#DC2626"}>
+                {yoyPct >= 0 ? "+" : ""}{(yoyPct * 100).toFixed(0)}%
+              </text>
+            )}
+
+            {/* Year label */}
+            <text x={cx.toFixed(1)} y={H - pad.bottom + 16} textAnchor="middle" fontSize="11"
+              fill={item.isCurrent ? "#15803D" : "#A0AEC0"} fontWeight={item.isCurrent ? "700" : "400"}>
+              {item.year}
+            </text>
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
 function HistoryTable({ yearlyRows }) {
   const actuals = [...yearlyRows].filter((row) => row.year >= 2021).sort((a, b) => a.year - b.year);
   const currentYear = new Date().getFullYear();
@@ -1247,6 +1336,7 @@ export default function App() {
           <AumChart data={chartData} />
         </section>
 
+        {/* ── Fila 1: Histórico anual + histórico mensual ── */}
         <section className="seasonality-grid">
           <article className="chart-section">
             <div className="chart-top">
@@ -1264,21 +1354,6 @@ export default function App() {
             <div className="chart-top">
               <div>
                 <div className="chart-title-row">
-                  <h2>YTD — comparativa entre anos</h2>
-                  <InfoTooltip><p>Aportaciones netas acumuladas desde el 1 de enero hasta el mismo dia del ano que el ultimo dato disponible. Todos los anos se cortan en el mismo punto del calendario para que la comparacion sea justa independientemente de cuanto quede de ano.</p></InfoTooltip>
-                </div>
-                <p>Acumulado 1 ene → {lastDate ? `${lastDate.getDate()} ${MONTH_LABELS[lastDate.getMonth()]}` : "hoy"} de cada ano · verde = ano actual</p>
-              </div>
-            </div>
-            <ComparisonBarChart data={ytdComparison} />
-          </article>
-        </section>
-
-        <section className="seasonality-grid">
-          <article className="chart-section">
-            <div className="chart-top">
-              <div>
-                <div className="chart-title-row">
                   <h2>Aportaciones netas mensuales</h2>
                   <InfoTooltip><p>Entradas menos salidas de dinero cada mes desde 2016. La linea amarilla es la media movil de 12 meses. La extension transparente en el ultimo mes es la proyeccion al cierre del mes al ritmo actual.</p></InfoTooltip>
                 </div>
@@ -1287,17 +1362,33 @@ export default function App() {
             </div>
             <MonthlyInflowsChart data={monthlyInflowsData} projection={monthlyProjection} />
           </article>
+        </section>
+
+        {/* ── Fila 2: YTD comparativa + MTD comparativa (barras apiladas) ── */}
+        <section className="seasonality-grid">
+          <article className="chart-section">
+            <div className="chart-top">
+              <div>
+                <div className="chart-title-row">
+                  <h2>YTD — comparativa entre anos</h2>
+                  <InfoTooltip><p>Barra solida: aportaciones acumuladas desde el 1 de enero hasta el mismo dia del ano que el ultimo dato disponible (comparable entre anos). Barra clara detras: total del ano completo (o proyeccion para el ano actual). El % sobre cada barra es el crecimiento vs el mismo periodo del ano anterior.</p></InfoTooltip>
+                </div>
+                <p>Solido: 1 ene → {lastDate ? `${lastDate.getDate()} ${MONTH_LABELS[lastDate.getMonth()]}` : "hoy"} · claro: ano completo / proyectado · % = YoY del mismo periodo</p>
+              </div>
+            </div>
+            <StackedComparisonBarChart data={ytdComparison} />
+          </article>
           <article className="chart-section">
             <div className="chart-top">
               <div>
                 <div className="chart-title-row">
                   <h2>MTD — comparativa entre anos</h2>
-                  <InfoTooltip><p>Aportaciones netas del mes en curso acumuladas del dia 1 al mismo dia del mes que el ultimo dato. Permite comparar si este mes esta siendo mas fuerte o debil que el mismo periodo del mismo mes en anos anteriores.</p></InfoTooltip>
+                  <InfoTooltip><p>Barra solida: aportaciones del 1 al dia actual del mes, en cada ano. Barra clara: total del mes completo (o proyeccion para el mes actual). El % muestra el crecimiento vs el mismo tramo del ano anterior.</p></InfoTooltip>
                 </div>
-                <p>Del 1 al {lastDate?.getDate() ?? "?"} de {lastDate ? MONTH_LABELS[lastDate.getMonth()] : "—"} de cada ano · verde = ano actual</p>
+                <p>Solido: 1–{lastDate?.getDate() ?? "?"} {lastDate ? MONTH_LABELS[lastDate.getMonth()] : "—"} · claro: mes completo / proyectado · % = YoY del mismo periodo</p>
               </div>
             </div>
-            <ComparisonBarChart data={mtdComparison} />
+            <StackedComparisonBarChart data={mtdComparison} />
           </article>
         </section>
 

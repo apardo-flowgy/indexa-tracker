@@ -1574,10 +1574,7 @@ export default function App() {
           </article>
         </section>
 
-        <section className="seasonality-grid">
-          <PeriodComparisonBars {...periodComp.monthly} />
-          <PeriodComparisonBars {...periodComp.quarterly} />
-        </section>
+
 
         <section className="seasonality-grid">
           <article className="chart-section">

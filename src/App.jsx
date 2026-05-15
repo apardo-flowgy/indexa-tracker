@@ -1342,7 +1342,7 @@ export default function App() {
               <div>
                 <div className="chart-title-row">
                   <h2>Rentabilidad de la cartera (TWR)</h2>
-                  <InfoTooltip><p>Time-Weighted Return con Modified Dietz diario: factor = (V_fin − CF/2) / (V_ini + CF/2), asumiendo que el dinero nuevo entra a mitad del dia. Aisla la rentabilidad pura de la cartera eliminando el efecto del tamano y timing de las aportaciones. Los factores diarios se encadenan por ano y mes.</p></InfoTooltip>
+                  <InfoTooltip><p>Time-Weighted Return diario con convencion fin-de-dia: factor = (V_fin − CF_dia) / V_ini. Las aportaciones del dia no participan en la rentabilidad de ese dia (se asume compra al cierre). Aisla la rentabilidad pura de la cartera eliminando el efecto del tamano y timing de las aportaciones. Los factores diarios se encadenan por ano y mes.</p></InfoTooltip>
                 </div>
                 <p>
                   TWR anualizado: <strong>{percent.format(twrData.twrAnnualized)}</strong>

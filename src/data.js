@@ -188,13 +188,14 @@ export function buildTwrSeries(volumeRows) {
   const todayYear = new Date().getFullYear();
 
   for (let i = 1; i < volumeRows.length; i++) {
-    const prev   = volumeRows[i - 1];
-    const curr   = volumeRows[i];
-    const halfCF = curr.inflowsDaily / 2;
-    const denom  = prev.volume + halfCF;
-    const numer  = curr.volume  - halfCF;
-    // Modified Dietz: (V_end - CF/2) / (V_start + CF/2)
-    // numer can be near-zero on huge-outflow days but shouldn't chain as 0
+    const prev  = volumeRows[i - 1];
+    const curr  = volumeRows[i];
+    // End-of-day convention: inflows arrive at close, so they don't earn
+    // any return on the day they enter. Only the existing portfolio (V_ini)
+    // is exposed to market moves during the day.
+    // Factor = (V_end − CF_day) / V_start
+    const denom = prev.volume;
+    const numer = curr.volume - curr.inflowsDaily;
     if (denom <= 0 || numer <= 0) continue;
     const factor = numer / denom;
 

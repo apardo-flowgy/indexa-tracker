@@ -548,17 +548,35 @@ function simulateFundVsIndexa(settings) {
   return rows;
 }
 
+function parseClientsHistory(csv) {
+  const lines = csv.trim().split(/\r?\n/).slice(1); // skip header
+  return lines
+    .map((line) => {
+      const [dateStr, countStr] = line.split(";");
+      const date = new Date(`${dateStr}T00:00:00`);
+      const clients = parseInt(countStr, 10);
+      return isNaN(clients) || isNaN(date.getTime()) ? null : { date, clients };
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.date - b.date);
+}
+
 export async function loadIndexaDataset() {
-  const [volumeCsv, revenueCsv] = await Promise.all([
-    fetch(`${import.meta.env.BASE_URL}data/indexa_stats_volume.csv`).then((response) => response.text()),
-    fetch(`${import.meta.env.BASE_URL}data/indexa_stats_revenue.csv`).then((response) => response.text())
+  const base = import.meta.env.BASE_URL;
+  const [volumeCsv, revenueCsv, clientsCsv] = await Promise.all([
+    fetch(`${base}data/indexa_stats_volume.csv`).then((r) => r.text()),
+    fetch(`${base}data/indexa_stats_revenue.csv`).then((r) => r.text()),
+    fetch(`${base}data/clients_history.csv`)
+      .then((r) => (r.ok ? r.text() : "fecha;clientes\n"))
+      .catch(() => "fecha;clientes\n"),
   ]);
 
-  const volumeRows = normalizeVolumeRows(parseCsv(volumeCsv));
+  const volumeRows  = normalizeVolumeRows(parseCsv(volumeCsv));
   const revenueRows = normalizeRevenueRows(parseCsv(revenueCsv));
   const monthlyRows = monthlyFromDaily(volumeRows, revenueRows);
-  const yearlyRows = yearlyFromMonthly(monthlyRows);
-  return { volumeRows, revenueRows, monthlyRows, yearlyRows, metrics: buildMetrics(volumeRows, revenueRows, monthlyRows, yearlyRows) };
+  const yearlyRows  = yearlyFromMonthly(monthlyRows);
+  const clientsHistory = parseClientsHistory(clientsCsv);
+  return { volumeRows, revenueRows, monthlyRows, yearlyRows, clientsHistory, metrics: buildMetrics(volumeRows, revenueRows, monthlyRows, yearlyRows) };
 }
 
 export function defaultIndexaAssumptions(dataset) {

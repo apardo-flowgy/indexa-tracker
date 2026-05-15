@@ -1061,6 +1061,144 @@ function StackedComparisonBarChart({ data }) {
   );
 }
 
+// Clientes históricos anuales (fin de año, datos auditados / PDF benchmark)
+const CLIENTS_ANNUAL = [
+  { year: 2021, clients: 50000 },
+  { year: 2022, clients: 59000 },
+  { year: 2023, clients: 69000 },
+  { year: 2024, clients: 96000 },
+  { year: 2025, clients: 134000 },
+];
+const CLIENTS_TARGETS = [
+  { year: 2025, clients: 134000 }, // ancla de la curva objetivo
+  { year: 2026, clients: 178000 },
+  { year: 2027, clients: 230000 },
+  { year: 2028, clients: 292000 },
+  { year: 2029, clients: 366000 },
+  { year: 2030, clients: 454000 },
+];
+
+function ClientsChart({ data }) {
+  const W = 1100, H = 280;
+  const pad = { top: 28, right: 56, bottom: 44, left: 72 };
+  const iW = W - pad.left - pad.right;
+  const iH = H - pad.top - pad.bottom;
+
+  // Fixed time range: 2021-01-01 → 2030-12-31
+  const startMs   = new Date("2021-01-01T00:00:00").getTime();
+  const endMs     = new Date("2030-12-31T00:00:00").getTime();
+  const timeRange = endMs - startMs;
+
+  const yMin  = 0;
+  const yMax  = 480000;
+  const range = yMax - yMin;
+
+  const pxMs = (ms) => pad.left + ((ms - startMs) / timeRange) * iW;
+  const pxYE = (y)  => pxMs(new Date(`${y}-12-31T00:00:00`).getTime());
+  const py   = (v)  => pad.top + iH * (1 - (v - yMin) / range);
+
+  // Y ticks
+  const yTicks = [0, 100000, 200000, 300000, 400000];
+
+  // X ticks: one per year
+  const yearTicks = [2021, 2022, 2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030];
+
+  // Actual real data path (CSV: histórico anual + scrapeado diario)
+  const realPath = (data ?? [])
+    .map((d, i) => `${i === 0 ? "M" : "L"}${pxMs(d.date.getTime()).toFixed(1)},${py(d.clients).toFixed(1)}`)
+    .join(" ");
+
+  // Annual markers (end-of-year dots from CLIENTS_ANNUAL)
+  // Target dashed path
+  const targetPath = CLIENTS_TARGETS
+    .map((p, i) => `${i === 0 ? "M" : "L"}${pxYE(p.year).toFixed(1)},${py(p.clients).toFixed(1)}`)
+    .join(" ");
+
+  const last = data?.at(-1);
+
+  // Daily rate (last 30 scraped points or less)
+  const scraped = (data ?? []).filter((d) => d.date.getFullYear() >= 2026);
+  const daysBack = Math.min(30, scraped.length - 1);
+  const dailyAvg = daysBack > 0
+    ? (scraped.at(-1).clients - scraped[scraped.length - 1 - daysBack].clients) / daysBack
+    : null;
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="chart-svg">
+      {/* Grid */}
+      {yTicks.map((v) => (
+        <g key={v}>
+          <line x1={pad.left} y1={py(v).toFixed(1)} x2={W - pad.right} y2={py(v).toFixed(1)}
+            stroke="#E2E8F0" strokeWidth="1" />
+          <text x={pad.left - 8} y={(py(v) + 4).toFixed(1)} textAnchor="end" fontSize="12" fill="#A0AEC0">
+            {v === 0 ? "0" : `${v / 1000}k`}
+          </text>
+        </g>
+      ))}
+
+      {/* Year ticks */}
+      {yearTicks.map((y) => {
+        const x = pxYE(y);
+        const isFuture = y >= new Date().getFullYear();
+        return (
+          <g key={y}>
+            <line x1={x.toFixed(1)} y1={pad.top + iH} x2={x.toFixed(1)} y2={pad.top + iH + 4}
+              stroke="#CBD5E1" strokeWidth="1" />
+            <text x={x.toFixed(1)} y={H - pad.bottom + 18} textAnchor="middle" fontSize="11"
+              fill={isFuture ? "#CBD5E1" : "#A0AEC0"}>
+              {y}{isFuture ? "e" : ""}
+            </text>
+          </g>
+        );
+      })}
+
+      {/* Target dashed line */}
+      <path d={targetPath} fill="none" stroke="#CBD5E1" strokeWidth="1.5" strokeDasharray="6 3" />
+      {CLIENTS_TARGETS.slice(1).map((p) => (
+        <g key={p.year}>
+          <circle cx={pxYE(p.year).toFixed(1)} cy={py(p.clients).toFixed(1)} r="3" fill="#CBD5E1" />
+          <text x={(pxYE(p.year) + 5).toFixed(1)} y={(py(p.clients) - 6).toFixed(1)}
+            fontSize="10" fill="#A0AEC0">{`${p.clients / 1000}k`}</text>
+        </g>
+      ))}
+
+      {/* Annual historical dots */}
+      {CLIENTS_ANNUAL.map((p) => (
+        <circle key={p.year} cx={pxYE(p.year).toFixed(1)} cy={py(p.clients).toFixed(1)}
+          r="4" fill="#0F766E" />
+      ))}
+
+      {/* Real line (CSV data) */}
+      {realPath && <path d={realPath} fill="none" stroke="#0F766E" strokeWidth="2.2" />}
+
+      {/* Latest label */}
+      {last && (
+        <g>
+          <circle cx={pxMs(last.date.getTime()).toFixed(1)} cy={py(last.clients).toFixed(1)} r="5" fill="#0F766E" />
+          <text x={(pxMs(last.date.getTime()) + 8).toFixed(1)} y={(py(last.clients) + 4).toFixed(1)}
+            fontSize="12" fill="#0F766E" fontWeight="700">
+            {last.clients.toLocaleString("es-ES")}
+          </text>
+          {dailyAvg != null && dailyAvg > 0 && (
+            <text x={(pxMs(last.date.getTime()) + 8).toFixed(1)} y={(py(last.clients) + 18).toFixed(1)}
+              fontSize="10" fill="#718096">
+              +{Math.round(dailyAvg)}/día (últ. {daysBack}d)
+            </text>
+          )}
+        </g>
+      )}
+
+      {/* Legend */}
+      <g transform={`translate(${pad.left}, ${pad.top - 10})`}>
+        <circle cx="6" cy="0" r="4" fill="#0F766E" />
+        <text x="14" y="4" fontSize="10" fill="#718096">Real</text>
+        <line x1="60" y1="0" x2="82" y2="0" stroke="#CBD5E1" strokeWidth="1.5" strokeDasharray="6 3" />
+        <text x="88" y="4" fontSize="10" fill="#A0AEC0">Objetivo PDF</text>
+      </g>
+    </svg>
+  );
+}
+
 function HistoryTable({ yearlyRows }) {
   const actuals = [...yearlyRows].filter((row) => row.year >= 2021).sort((a, b) => a.year - b.year);
   const currentYear = new Date().getFullYear();
@@ -1496,6 +1634,25 @@ export default function App() {
             <p className="chart-note" style={{ marginTop: 16, marginBottom: 4 }}>Desglose mensual — verde: rentabilidad positiva · rojo: negativa · intensidad proporcional a la magnitud</p>
             <ReturnMonthlyHeatmap monthlyReturns={twrData.monthlyReturns.filter((r) => r.year >= 2021)} />
             <p className="chart-note">* Ano en curso, datos parciales hasta el ultimo dato disponible.</p>
+          </section>
+        )}
+
+        {dataset.clientsHistory?.length > 1 && (
+          <section className="chart-section">
+            <div className="chart-top">
+              <div>
+                <div className="chart-title-row">
+                  <h2>Evolución de clientes</h2>
+                  <InfoTooltip><p>Número de clientes publicado en la página de testimonios de Indexa Capital, capturado automáticamente varias veces al día. El ritmo diario se calcula como la media de los últimos 30 días.</p></InfoTooltip>
+                </div>
+                <p>
+                  Clientes actuales: <strong>{dataset.clientsHistory.at(-1).clients.toLocaleString("es-ES")}</strong>
+                  {" · "}
+                  Datos desde {dataset.clientsHistory[0].date.toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric" })}
+                </p>
+              </div>
+            </div>
+            <ClientsChart data={dataset.clientsHistory} />
           </section>
         )}
 

@@ -1,4 +1,4 @@
-import { mkdir, rename, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -64,12 +64,54 @@ async function downloadCsv({ stat, filename, expectedHeaderTokens }) {
   console.log(`${filename}: ${rowCount} filas actualizadas`);
 }
 
+// ── Scraping de clientes desde la página de testimonios ──────────────────────
+async function scrapeAndAppendClients() {
+  const url = "https://indexacapital.com/es/esp/testimonies";
+  const response = await fetch(url, {
+    headers: { "user-agent": "indexa-capital-analisis-data-updater/1.0" }
+  });
+  if (!response.ok) throw new Error(`HTTP ${response.status} al obtener testimonios`);
+
+  const html = await response.text();
+  // Busca patrones como "154.811 clientes" o "clientes 154.811"
+  const match = html.match(/(\d{1,3}(?:[.,]\d{3})+)\s*clientes/i)
+    ?? html.match(/clientes[^0-9]*?(\d{1,3}(?:[.,]\d{3})+)/i);
+  if (!match) throw new Error("Número de clientes no encontrado en la página");
+
+  const clients = parseInt(match[1].replace(/[.,]/g, ""), 10);
+  if (isNaN(clients) || clients < 10000) throw new Error(`Valor de clientes sospechoso: ${match[1]}`);
+
+  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  const filePath = path.join(dataDir, "clients_history.csv");
+
+  let existing = "fecha;clientes\n";
+  try { existing = await readFile(filePath, "utf8"); } catch { /* archivo nuevo */ }
+
+  const lines = existing.trim().split(/\r?\n/);
+  const lastLine = lines.at(-1) ?? "";
+  const [lastDate, lastCountStr] = lastLine.split(";");
+  const lastCount = parseInt(lastCountStr ?? "0", 10);
+
+  if (lastDate === today && lastCount === clients) {
+    console.log(`clients_history.csv: sin cambios (${today}: ${clients.toLocaleString("es-ES")} clientes)`);
+    return;
+  }
+
+  const newLine = `${today};${clients}`;
+  // Si ya existe la fecha de hoy (misma fecha, cuenta diferente), reemplaza la última línea
+  const updatedLines = lastDate === today ? [...lines.slice(0, -1), newLine] : [...lines, newLine];
+  await writeFile(filePath, updatedLines.join("\n") + "\n", "utf8");
+  console.log(`clients_history.csv: ${today} → ${clients.toLocaleString("es-ES")} clientes`);
+}
+
 async function main() {
   await mkdir(dataDir, { recursive: true });
 
   for (const item of downloads) {
     await downloadCsv(item);
   }
+
+  await scrapeAndAppendClients();
 
   console.log(`Datos actualizados en ${dataDir}`);
 }

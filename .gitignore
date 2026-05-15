@@ -1,6 +1,7 @@
 node_modules/
 dist/
 public/data/*.csv
+!public/data/clients_history.csv
 .env
 .env.local
 *.local

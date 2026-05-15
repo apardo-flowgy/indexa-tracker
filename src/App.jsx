@@ -1036,14 +1036,14 @@ function StackedComparisonBarChart({ data }) {
               fill={partFill} opacity={item.isCurrent ? 1 : 0.85} rx="3" />
 
             {/* Partial value label */}
-            <text x={cx.toFixed(1)} y={(partY - 4).toFixed(1)} textAnchor="middle" fontSize="9"
+            <text x={cx.toFixed(1)} y={(partY - 4).toFixed(1)} textAnchor="middle" fontSize="11"
               fill={item.isCurrent ? "#15803D" : "#718096"}>
               {euroCompact.format(item.partial)}
             </text>
 
             {/* YoY% label above full bar */}
             {yoyPct != null && (
-              <text x={cx.toFixed(1)} y={(topY - 6).toFixed(1)} textAnchor="middle" fontSize="9" fontWeight="700"
+              <text x={cx.toFixed(1)} y={(topY - 6).toFixed(1)} textAnchor="middle" fontSize="11" fontWeight="700"
                 fill={yoyPct >= 0 ? "#059669" : "#DC2626"}>
                 {yoyPct >= 0 ? "+" : ""}{(yoyPct * 100).toFixed(0)}%
               </text>
@@ -1306,26 +1306,26 @@ function PeriodComparisonBars({ label, bars }) {
       <div className="comparison-header">
         <div>
           <h2 className="comparison-title">{label}</h2>
-          <p className="comparison-sub">Aportaciones netas · ultimos 4 anos + {new Date().getFullYear()} proyectado</p>
+          <p className="comparison-sub">Aportaciones netas · ultimos 4 años + {new Date().getFullYear()} proyectado</p>
         </div>
         <InfoTooltip>
           {isMonthly ? (
             <>
-              <p>Cada barra muestra las <strong>aportaciones netas brutas</strong> del mismo mes en cada uno de los ultimos 4 anos completos.</p>
+              <p>Cada barra muestra las <strong>aportaciones netas brutas</strong> del mismo mes en cada uno de los ultimos 4 años completos.</p>
               <p style={{ marginTop: 8 }}>La barra de <strong>{new Date().getFullYear()}p</strong> es una proyeccion al mes completo calculada asi:</p>
               <p style={{ marginTop: 4, fontFamily: "monospace", fontSize: "0.82em", background: "rgba(255,255,255,0.08)", padding: "4px 8px", borderRadius: 4 }}>
                 aportaciones acumuladas / dias transcurridos × dias totales del mes
               </p>
-              <p style={{ marginTop: 8, opacity: 0.7 }}>Util para ver si el ritmo de este mes es alto o bajo comparado con anos anteriores.</p>
+              <p style={{ marginTop: 8, opacity: 0.7 }}>Util para ver si el ritmo de este mes es alto o bajo comparado con años anteriores.</p>
             </>
           ) : (
             <>
-              <p>Cada barra muestra las <strong>aportaciones netas brutas</strong> del mismo trimestre en cada uno de los ultimos 4 anos completos.</p>
+              <p>Cada barra muestra las <strong>aportaciones netas brutas</strong> del mismo trimestre en cada uno de los ultimos 4 años completos.</p>
               <p style={{ marginTop: 8 }}>La barra de <strong>{new Date().getFullYear()}p</strong> es una proyeccion al trimestre completo calculada asi:</p>
               <p style={{ marginTop: 4, fontFamily: "monospace", fontSize: "0.82em", background: "rgba(255,255,255,0.08)", padding: "4px 8px", borderRadius: 4 }}>
                 aportaciones acumuladas / dias transcurridos × dias totales del trimestre
               </p>
-              <p style={{ marginTop: 8, opacity: 0.7 }}>Util para ver si el ritmo de este trimestre es alto o bajo comparado con anos anteriores.</p>
+              <p style={{ marginTop: 8, opacity: 0.7 }}>Util para ver si el ritmo de este trimestre es alto o bajo comparado con años anteriores.</p>
             </>
           )}
         </InfoTooltip>
@@ -1552,8 +1552,8 @@ export default function App() {
             <div className="chart-top">
               <div>
                 <div className="chart-title-row">
-                  <h2>YTD — comparativa entre anos</h2>
-                  <InfoTooltip><p>Barra solida: aportaciones acumuladas desde el 1 de enero hasta el mismo dia del ano que el ultimo dato disponible (comparable entre anos). Barra clara detras: total del ano completo (o proyeccion para el ano actual). El % sobre cada barra es el crecimiento vs el mismo periodo del ano anterior.</p></InfoTooltip>
+                  <h2>YTD — comparativa entre años</h2>
+                  <InfoTooltip><p>Barra solida: aportaciones acumuladas desde el 1 de enero hasta el mismo dia del ano que el ultimo dato disponible (comparable entre años). Barra clara detras: total del ano completo (o proyeccion para el ano actual). El % sobre cada barra es el crecimiento vs el mismo periodo del ano anterior.</p></InfoTooltip>
                 </div>
                 <p>Solido: 1 ene → {lastDate ? `${lastDate.getDate()} ${MONTH_LABELS[lastDate.getMonth()]}` : "hoy"} · claro: ano completo / proyectado · % = YoY del mismo periodo</p>
               </div>
@@ -1564,7 +1564,7 @@ export default function App() {
             <div className="chart-top">
               <div>
                 <div className="chart-title-row">
-                  <h2>MTD — comparativa entre anos</h2>
+                  <h2>MTD — comparativa entre años</h2>
                   <InfoTooltip><p>Barra solida: aportaciones del 1 al dia actual del mes, en cada ano. Barra clara: total del mes completo (o proyeccion para el mes actual). El % muestra el crecimiento vs el mismo tramo del ano anterior.</p></InfoTooltip>
                 </div>
                 <p>Solido: 1–{lastDate?.getDate() ?? "?"} {lastDate ? MONTH_LABELS[lastDate.getMonth()] : "—"} · claro: mes completo / proyectado · % = YoY del mismo periodo</p>
@@ -1585,9 +1585,9 @@ export default function App() {
               <div>
                 <div className="chart-title-row">
                   <h2>Estacionalidad mensual de aportaciones</h2>
-                  <InfoTooltip><p>Para cada mes, muestra las aportaciones netas como porcentaje de las aportaciones acumuladas a 1 de enero del mismo ano. Normalizar por la base de enero permite <strong>comparar patrones estacionales entre anos de distinto tamano</strong>. Un valor alto indica un mes de captacion fuerte respecto al ritmo del ano.</p></InfoTooltip>
+                  <InfoTooltip><p>Para cada mes, muestra las aportaciones netas como porcentaje de las aportaciones acumuladas a 1 de enero del mismo ano. Normalizar por la base de enero permite <strong>comparar patrones estacionales entre años de distinto tamano</strong>. Un valor alto indica un mes de captacion fuerte respecto al ritmo del ano.</p></InfoTooltip>
                 </div>
-                <p>Aportaciones mensuales / aportaciones acumuladas a 1 de enero (%) · ultimos 5 anos</p>
+                <p>Aportaciones mensuales / aportaciones acumuladas a 1 de enero (%) · ultimos 5 años</p>
               </div>
             </div>
             <SeasonalityChart data={seasonalityMonthly} />
@@ -1645,7 +1645,7 @@ export default function App() {
                   {" · "}
                   {new Date().getFullYear()}: <strong>{percent.format(twrData.currentYearReturn ?? 0)}</strong> (parcial)
                   {" · "}
-                  Acumulado: <strong>+{(twrData.twrAccumulated * 100).toFixed(0)}%</strong> en {twrData.yearsSpan.toFixed(1)} anos
+                  Acumulado: <strong>+{(twrData.twrAccumulated * 100).toFixed(0)}%</strong> en {twrData.yearsSpan.toFixed(1)} años
                 </p>
               </div>
             </div>

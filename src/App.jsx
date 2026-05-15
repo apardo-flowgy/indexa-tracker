@@ -357,6 +357,145 @@ function ArrYearlyIndexChart({ data }) {
   );
 }
 
+// ── Rentabilidad TWR ──────────────────────────────────────────────────────────
+function retBgColor(ret) {
+  if (ret == null) return "#F8FAFC";
+  if (ret >=  0.10) return "#16A34A";
+  if (ret >=  0.05) return "#4ADE80";
+  if (ret >=  0.01) return "#BBF7D0";
+  if (ret >= -0.01) return "#F8FAFC";
+  if (ret >= -0.05) return "#FECACA";
+  if (ret >= -0.10) return "#F87171";
+  return "#DC2626";
+}
+function retTextColor(ret) {
+  if (ret == null) return "#CBD5E0";
+  return Math.abs(ret) >= 0.07 ? "#FFFFFF" : "#1A202C";
+}
+
+function ReturnBarsChart({ annualReturns }) {
+  const W = 1100, H = 220;
+  const pad = { top: 24, right: 20, bottom: 42, left: 60 };
+  const iW = W - pad.left - pad.right;
+  const iH = H - pad.top - pad.bottom;
+  if (!annualReturns?.length) return null;
+
+  const rets = annualReturns.map((r) => r.return);
+  const rawMin = Math.min(...rets, 0);
+  const rawMax = Math.max(...rets, 0);
+  const steps = [0.05, 0.1, 0.15, 0.2, 0.25];
+  const roughStep = Math.max(Math.abs(rawMin), rawMax) / 3;
+  const tickStep = steps.find((s) => s >= roughStep) ?? 0.25;
+  const minVal = Math.floor(rawMin / tickStep) * tickStep;
+  const maxVal = Math.ceil(rawMax / tickStep) * tickStep;
+  const range = maxVal - minVal || 1;
+
+  const n = annualReturns.length;
+  const slotW = iW / n;
+  const barW = Math.min(slotW * 0.62, 62);
+  const py = (v) => pad.top + iH * (1 - (v - minVal) / range);
+  const zeroY = py(0);
+
+  const yTicks = [];
+  for (let v = minVal; v <= maxVal + 0.001; v += tickStep)
+    yTicks.push(Math.round(v * 1000) / 1000);
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="chart-svg">
+      {yTicks.map((v) => (
+        <g key={v}>
+          <line x1={pad.left} y1={py(v).toFixed(1)} x2={W - pad.right} y2={py(v).toFixed(1)}
+            stroke={v === 0 ? "#94A3B8" : "#E2E8F0"} strokeWidth="1"
+            strokeDasharray={v === 0 ? "4 3" : undefined} />
+          <text x={pad.left - 8} y={(py(v) + 4).toFixed(1)} textAnchor="end" fontSize="12" fill="#A0AEC0">
+            {v >= 0 ? "+" : ""}{(v * 100).toFixed(0)}%
+          </text>
+        </g>
+      ))}
+      {annualReturns.map((row, i) => {
+        const cx = pad.left + (i + 0.5) * slotW;
+        const ret = row.return;
+        const barTop = ret >= 0 ? py(ret) : zeroY;
+        const barH  = Math.max(2, Math.abs(py(0) - py(ret)));
+        const fill  = ret >= 0 ? "#22C55E" : "#F87171";
+        const lblY  = ret >= 0 ? barTop - 5 : barTop + barH + 13;
+        return (
+          <g key={row.year}>
+            <rect x={(cx - barW / 2).toFixed(1)} y={barTop.toFixed(1)}
+              width={barW.toFixed(1)} height={barH.toFixed(1)}
+              fill={fill} opacity={row.isPartial ? 0.65 : 1} rx="3" />
+            <text x={cx.toFixed(1)} y={lblY.toFixed(1)} textAnchor="middle"
+              fontSize="10" fill={fill} fontWeight="600">
+              {ret >= 0 ? "+" : ""}{(ret * 100).toFixed(1)}%
+            </text>
+            <text x={cx.toFixed(1)} y={H - pad.bottom + 16} textAnchor="middle"
+              fontSize="11" fill="#718096">
+              {row.year}{row.isPartial ? "*" : ""}
+            </text>
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+function ReturnMonthlyHeatmap({ monthlyReturns }) {
+  if (!monthlyReturns?.length) return null;
+
+  const retMap = new Map(monthlyReturns.map((r) => [`${r.year}-${r.month}`, r.return]));
+  const years  = [...new Set(monthlyReturns.map((r) => r.year))].sort((a, b) => a - b);
+
+  const W       = 1100;
+  const labelW  = 48;
+  const rightP  = 16;
+  const topP    = 26;
+  const cellW   = (W - labelW - rightP) / 12;
+  const cellH   = 26;
+  const H       = topP + years.length * cellH + 12;
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="chart-svg" style={{ marginTop: "8px" }}>
+      {MONTH_LABELS.map((label, i) => (
+        <text key={label}
+          x={(labelW + (i + 0.5) * cellW).toFixed(1)} y="18"
+          textAnchor="middle" fontSize="11" fill="#718096" fontWeight="500">
+          {label}
+        </text>
+      ))}
+      {years.map((year, yi) => {
+        const rowY = topP + yi * cellH;
+        const todayYear = new Date().getFullYear();
+        return (
+          <g key={year}>
+            <text x={(labelW - 6).toFixed(1)} y={(rowY + cellH * 0.68).toFixed(1)}
+              textAnchor="end" fontSize="11" fill="#718096">
+              {year}{year === todayYear ? "*" : ""}
+            </text>
+            {Array.from({ length: 12 }, (_, mi) => {
+              const ret = retMap.get(`${year}-${mi}`) ?? null;
+              const cx  = labelW + (mi + 0.5) * cellW;
+              return (
+                <g key={mi}>
+                  <rect
+                    x={(labelW + mi * cellW + 1).toFixed(1)} y={(rowY + 1).toFixed(1)}
+                    width={(cellW - 2).toFixed(1)} height={(cellH - 2).toFixed(1)}
+                    fill={retBgColor(ret)} rx="3" />
+                  {ret != null && (
+                    <text x={cx.toFixed(1)} y={(rowY + cellH * 0.68).toFixed(1)}
+                      textAnchor="middle" fontSize="9.5" fill={retTextColor(ret)}>
+                      {ret >= 0 ? "+" : ""}{(ret * 100).toFixed(1)}%
+                    </text>
+                  )}
+                </g>
+              );
+            })}
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
 function InflowsChart({ data }) {
   const W = 1040;
   const H = 250;
@@ -842,6 +981,7 @@ export default function App() {
     annualInflows,
     arrYoySeries,
     arrYearlyIndex,
+    twrData,
   } = tracker;
 
   const today = new Date();
@@ -893,6 +1033,30 @@ export default function App() {
             />
           </div>
         </section>
+
+        {twrData && (
+          <section className="chart-section">
+            <div className="chart-top">
+              <div>
+                <div className="chart-title-row">
+                  <h2>Rentabilidad de la cartera (TWR)</h2>
+                  <InfoTooltip><p>Time-Weighted Return calculado con Modified Dietz diario: cada dia se calcula el factor V_fin / (V_ini + aportacion/2), asumiendo que el dinero nuevo entra a mitad del dia. Es el metodo estandar de la industria de fondos porque elimina el efecto del tamano y timing de las aportaciones, midiendo unicamente la rentabilidad de la cartera. El TWR anualizado es el CAGR de esos factores diarios encadenados.</p></InfoTooltip>
+                </div>
+                <p>
+                  TWR anualizado: <strong>{percent.format(twrData.twrAnnualized)}</strong>
+                  {" · "}
+                  {new Date().getFullYear()}: <strong>{percent.format(twrData.currentYearReturn ?? 0)}</strong> (parcial)
+                  {" · "}
+                  Acumulado: <strong>+{(twrData.twrAccumulated * 100).toFixed(0)}%</strong> en {twrData.yearsSpan.toFixed(1)} anos
+                </p>
+              </div>
+            </div>
+            <ReturnBarsChart annualReturns={twrData.annualReturns} />
+            <p className="chart-note" style={{ marginTop: 16, marginBottom: 4 }}>Desglose mensual — verde: rentabilidad positiva · rojo: negativa · intensidad proporcional a la magnitud</p>
+            <ReturnMonthlyHeatmap monthlyReturns={twrData.monthlyReturns} />
+            <p className="chart-note">* Ano en curso, datos parciales hasta el ultimo dato disponible.</p>
+          </section>
+        )}
 
         <section className="chart-section">
           <div className="chart-top">

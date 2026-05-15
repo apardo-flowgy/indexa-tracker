@@ -177,6 +177,50 @@ function yearlyFromMonthly(monthlyRows) {
   }));
 }
 
+// TWR (Time-Weighted Return) con Modified Dietz diario
+// Factor diario: V_fin / (V_ini + CF/2)  — asume aportación a mitad del día
+export function buildTwrSeries(volumeRows) {
+  if (volumeRows.length < 2) return null;
+
+  const yearCum  = new Map();   // year → cumulative factor
+  const monthCum = new Map();   // "YYYY-MM" → { factor, year, month }
+  let   totalFactor = 1;
+  const todayYear = new Date().getFullYear();
+
+  for (let i = 1; i < volumeRows.length; i++) {
+    const prev  = volumeRows[i - 1];
+    const curr  = volumeRows[i];
+    const denom = prev.volume + curr.inflowsDaily / 2;
+    if (denom <= 0) continue;
+    const factor = curr.volume / denom;
+
+    const y  = curr.date.getFullYear();
+    const m  = curr.date.getMonth();
+    const mk = `${y}-${String(m).padStart(2, "0")}`;
+
+    yearCum.set(y, (yearCum.get(y) ?? 1) * factor);
+    const mo = monthCum.get(mk) ?? { factor: 1, year: y, month: m };
+    mo.factor *= factor;
+    monthCum.set(mk, mo);
+    totalFactor *= factor;
+  }
+
+  const annualReturns = [...yearCum.entries()]
+    .sort(([a], [b]) => a - b)
+    .map(([year, f]) => ({ year, return: f - 1, isPartial: year === todayYear }));
+
+  const monthlyReturns = [...monthCum.values()]
+    .sort((a, b) => a.year !== b.year ? a.year - b.year : a.month - b.month)
+    .map(({ year, month, factor }) => ({ year, month, return: factor - 1 }));
+
+  const twrAccumulated = totalFactor - 1;
+  const yearsSpan = (volumeRows.at(-1).date - volumeRows[0].date) / (365.25 * 86400e3);
+  const twrAnnualized = yearsSpan > 0 ? Math.pow(totalFactor, 1 / yearsSpan) - 1 : 0;
+  const currentYearReturn = annualReturns.find((r) => r.year === todayYear)?.return ?? null;
+
+  return { annualReturns, monthlyReturns, twrAnnualized, twrAccumulated, yearsSpan, currentYearReturn };
+}
+
 function buildArrYearlyIndexSeries(revenueRows) {
   const byYear = new Map();
   for (const row of revenueRows) {
@@ -679,6 +723,7 @@ export function buildTrackerData(dataset) {
     }));
   const arrYoySeries       = buildArrYoySeries(dataset.revenueRows);
   const arrYearlyIndex     = buildArrYearlyIndexSeries(dataset.revenueRows);
+  const twrData            = buildTwrSeries(dataset.volumeRows);
 
   return {
     currentAum, currentArr, lastDate,
@@ -687,6 +732,6 @@ export function buildTrackerData(dataset) {
     avgMonthlyInflow, projectedYeAum, targetYearEnd, paceDeltaPct,
     chartData, decomposition,
     seasonalityMonthly, seasonalityQuarterly,
-    annualInflows, arrYoySeries, arrYearlyIndex,
+    annualInflows, arrYoySeries, arrYearlyIndex, twrData,
   };
 }

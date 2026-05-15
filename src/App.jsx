@@ -191,10 +191,12 @@ const ARR_YOY_REFS = [
   { value: 0.60, label: "+60%", color: "#475569" },
 ];
 
+const MONTH_LABELS_SHORT = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+
 function ArrYoYChart({ data }) {
   const W = 1100;
-  const H = 280;
-  const pad = { top: 18, right: 90, bottom: 50, left: 72 };
+  const H = 310;
+  const pad = { top: 18, right: 90, bottom: 66, left: 72 };
   const iW = W - pad.left - pad.right;
   const iH = H - pad.top - pad.bottom;
 
@@ -211,27 +213,64 @@ function ArrYoYChart({ data }) {
   const range = maxVal - minVal || 1;
 
   const startMs = data[0].date.getTime();
-  const endMs = data.at(-1).date.getTime();
+  const endMs   = data.at(-1).date.getTime();
   const timeRange = endMs - startMs || 1;
-  const px = (d) => pad.left + ((d.date.getTime() - startMs) / timeRange) * iW;
-  const py = (v) => pad.top + iH * (1 - (v - minVal) / range);
+  const px  = (d)   => pad.left + ((d.date.getTime() - startMs) / timeRange) * iW;
+  const pxMs = (ms) => pad.left + ((ms - startMs) / timeRange) * iW;
+  const py  = (v)   => pad.top  + iH * (1 - (v - minVal) / range);
   const pathD = data.map((d, i) => `${i === 0 ? "M" : "L"}${px(d).toFixed(1)},${py(d.yoy).toFixed(1)}`).join(" ");
 
   const yTicks = [];
   for (let v = minVal; v <= maxVal + 0.001; v += tickStep) yTicks.push(Math.round(v * 1000) / 1000);
 
+  // ── Year labels (top row of X axis) ──────────────────────────────────────
   const yearLabels = [];
-  const seen = new Set();
+  const seenY = new Set();
   for (const d of data) {
     const y = d.date.getFullYear();
-    if (d.date.getMonth() === 0 && !seen.has(y)) { seen.add(y); yearLabels.push({ x: px(d), label: String(y) }); }
+    if (d.date.getMonth() === 0 && !seenY.has(y)) { seenY.add(y); yearLabels.push({ x: px(d), label: String(y) }); }
   }
 
-  const last = data.at(-1);
-  const xEnd = pad.left + iW;
+  // ── Last-12-months band ───────────────────────────────────────────────────
+  const last       = data.at(-1);
+  const lastDate   = last.date;
+  const base12Ms   = new Date(lastDate.getFullYear() - 1, lastDate.getMonth(), lastDate.getDate()).getTime();
+  const xBase12    = Math.max(pxMs(base12Ms), pad.left);
+  const xEnd       = pad.left + iW;
+  const bandWidth  = xEnd - xBase12;
+
+  // Month marks within the last-12-months window (bottom row of X axis)
+  const monthMarks = [];
+  {
+    const d = new Date(lastDate);
+    d.setDate(1);
+    // go back 11 months from current month to cover the full window
+    d.setMonth(d.getMonth() - 11);
+    while (d.getTime() <= lastDate.getTime()) {
+      const ms = d.getTime();
+      if (ms >= startMs) {
+        monthMarks.push({
+          x: pxMs(ms),
+          label: MONTH_LABELS_SHORT[d.getMonth()],
+          isJan: d.getMonth() === 0,
+          year: d.getFullYear(),
+          month: d.getMonth(),
+        });
+      }
+      d.setMonth(d.getMonth() + 1);
+    }
+  }
+
+  const baseLabel  = `${MONTH_LABELS_SHORT[lastDate.getMonth()]} ${lastDate.getFullYear() - 1}`;
+  const todayLabel = `${MONTH_LABELS_SHORT[lastDate.getMonth()]} ${lastDate.getFullYear()}`;
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="chart-svg">
+      {/* Last-12-months highlight band */}
+      <rect x={xBase12.toFixed(1)} y={pad.top} width={bandWidth.toFixed(1)} height={iH}
+        fill="#F0FDF4" rx="0" />
+
+      {/* Grid lines */}
       {yTicks.map((v) => (
         <g key={v}>
           <line
@@ -245,6 +284,7 @@ function ArrYoYChart({ data }) {
         </g>
       ))}
 
+      {/* Reference lines */}
       {ARR_YOY_REFS.map(({ value, label, color }) => {
         const y = py(value).toFixed(1);
         return (
@@ -255,9 +295,36 @@ function ArrYoYChart({ data }) {
         );
       })}
 
+      {/* Vertical line at base-12 (start of comparison window) */}
+      <line x1={xBase12.toFixed(1)} y1={pad.top} x2={xBase12.toFixed(1)} y2={pad.top + iH}
+        stroke="#16A34A" strokeWidth="1.2" strokeDasharray="4 3" opacity="0.6" />
+
+      {/* Year labels (top X-axis row) */}
       {yearLabels.map(({ x, label }) => (
         <text key={label} x={x.toFixed(1)} y={H - pad.bottom + 18} textAnchor="middle" fontSize="11" fill="#A0AEC0">{label}</text>
       ))}
+
+      {/* Month marks within the last-12-months band (second X-axis row) */}
+      {monthMarks.map(({ x, label, isJan, year, month }) => (
+        <g key={`${year}-${month}`}>
+          <line x1={x.toFixed(1)} y1={pad.top + iH} x2={x.toFixed(1)} y2={pad.top + iH + 4}
+            stroke="#A0AEC0" strokeWidth="1" />
+          <text x={x.toFixed(1)} y={H - pad.bottom + 36} textAnchor="middle" fontSize="9.5"
+            fill={isJan ? "#64748B" : "#94A3B8"} fontWeight={isJan ? "700" : "400"}>
+            {label}
+          </text>
+        </g>
+      ))}
+
+      {/* Band annotation: base label left, today label right */}
+      <text x={(xBase12 + 4).toFixed(1)} y={H - pad.bottom + 54} fontSize="9" fill="#15803D" fontWeight="600">
+        ← base: {baseLabel}
+      </text>
+      <text x={(xEnd).toFixed(1)} y={H - pad.bottom + 54} textAnchor="end" fontSize="9" fill="#15803D" fontWeight="600">
+        hoy: {todayLabel} →
+      </text>
+
+      {/* Chart line */}
       <path d={pathD} fill="none" stroke="#22c55e" strokeWidth="1.8" />
       <circle cx={px(last).toFixed(1)} cy={py(last.yoy).toFixed(1)} r="4" fill="#22c55e" />
       <text

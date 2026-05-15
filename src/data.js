@@ -721,6 +721,16 @@ export function buildTrackerData(dataset) {
       year: row.year,
       inflows: row.inflowsAnnual,
     }));
+  const _monthlyBase = dataset.monthlyRows.filter((r) => r.date.getFullYear() >= 2016);
+  const monthlyInflowsData = _monthlyBase.map((r, i, arr) => {
+    const win = arr.slice(Math.max(0, i - 11), i + 1);
+    return {
+      date: r.date,
+      inflows: r.inflowsMonthly,
+      rolling12: win.reduce((s, w) => s + w.inflowsMonthly, 0) / win.length,
+    };
+  });
+
   const arrYoySeries       = buildArrYoySeries(dataset.revenueRows);
   const arrYearlyIndex     = buildArrYearlyIndexSeries(dataset.revenueRows);
   const twrData            = buildTwrSeries(dataset.volumeRows);
@@ -732,6 +742,6 @@ export function buildTrackerData(dataset) {
     avgMonthlyInflow, projectedYeAum, targetYearEnd, paceDeltaPct,
     chartData, decomposition,
     seasonalityMonthly, seasonalityQuarterly,
-    annualInflows, arrYoySeries, arrYearlyIndex, twrData,
+    annualInflows, monthlyInflowsData, arrYoySeries, arrYearlyIndex, twrData,
   };
 }

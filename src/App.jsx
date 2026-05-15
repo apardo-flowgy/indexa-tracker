@@ -764,6 +764,80 @@ function AnnualInflowsChart({ data }) {
   );
 }
 
+function MonthlyInflowsChart({ data }) {
+  const W = 1100;
+  const H = 280;
+  const pad = { top: 20, right: 24, bottom: 44, left: 86 };
+  const iW = W - pad.left - pad.right;
+  const iH = H - pad.top - pad.bottom;
+
+  if (!data?.length) return null;
+
+  const values  = data.map((d) => d.inflows);
+  const maxVal  = Math.max(...values, 0) * 1.12;
+  const minVal  = Math.min(...values, 0) * 1.12;
+  const range   = maxVal - minVal || 1;
+  const slotW   = iW / data.length;
+  const barW    = Math.max(2, slotW * 0.78);
+
+  const yScale  = (v) => pad.top + iH * (1 - (v - minVal) / range);
+  const zeroY   = yScale(0);
+  const xCenter = (i) => pad.left + (i + 0.5) * slotW;
+  const yTicks  = [0, 0.25, 0.5, 0.75, 1].map((r) => minVal + r * range);
+
+  // Rolling-12m line path
+  const rollingPath = data
+    .map((d, i) => `${i === 0 ? "M" : "L"}${xCenter(i).toFixed(1)},${yScale(d.rolling12).toFixed(1)}`)
+    .join(" ");
+
+  // Year tick labels (January of each year)
+  const yearTicks = data
+    .map((d, i) => ({ d, i }))
+    .filter(({ d }) => d.date.getMonth() === 0);
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="chart-svg">
+      {/* Y grid */}
+      {yTicks.map((v, idx) => (
+        <g key={idx}>
+          <line x1={pad.left} y1={yScale(v).toFixed(1)} x2={W - pad.right} y2={yScale(v).toFixed(1)}
+            stroke="#E2E8F0" strokeWidth="1" />
+          <text x={pad.left - 8} y={(yScale(v) + 4).toFixed(1)} textAnchor="end" fontSize="12" fill="#A0AEC0">
+            {euroCompact.format(v)}
+          </text>
+        </g>
+      ))}
+      <line x1={pad.left} y1={zeroY.toFixed(1)} x2={W - pad.right} y2={zeroY.toFixed(1)}
+        stroke="#94A3B8" strokeWidth="0.8" />
+
+      {/* Monthly bars */}
+      {data.map((item, i) => {
+        const x  = pad.left + i * slotW + (slotW - barW) / 2;
+        const bY = item.inflows >= 0 ? yScale(item.inflows) : zeroY;
+        const bH = Math.max(1, Math.abs((item.inflows / range) * iH));
+        return (
+          <rect key={i} x={x.toFixed(1)} y={bY.toFixed(1)}
+            width={barW.toFixed(1)} height={bH.toFixed(1)}
+            fill={item.inflows >= 0 ? "#3B82F6" : "#EF4444"}
+            opacity="0.75" rx="1" />
+        );
+      })}
+
+      {/* Rolling 12-month average line */}
+      <path d={rollingPath} fill="none" stroke="#F59E0B" strokeWidth="2" strokeLinejoin="round" />
+
+      {/* Year labels */}
+      {yearTicks.map(({ d, i }) => (
+        <text key={d.date.getFullYear()}
+          x={xCenter(i).toFixed(1)} y={H - pad.bottom + 16}
+          textAnchor="middle" fontSize="11" fill="#94A3B8">
+          {d.date.getFullYear()}
+        </text>
+      ))}
+    </svg>
+  );
+}
+
 function HistoryTable({ yearlyRows }) {
   const actuals = [...yearlyRows].filter((row) => row.year >= 2021).sort((a, b) => a.year - b.year);
   const currentYear = new Date().getFullYear();
@@ -979,6 +1053,7 @@ export default function App() {
     seasonalityMonthly,
     seasonalityQuarterly,
     annualInflows,
+    monthlyInflowsData,
     arrYoySeries,
     arrYearlyIndex,
     twrData,
@@ -1112,6 +1187,19 @@ export default function App() {
             </div>
           </div>
           <AnnualInflowsChart data={annualInflows} />
+        </section>
+
+        <section className="chart-section">
+          <div className="chart-top">
+            <div>
+              <div className="chart-title-row">
+                <h2>Aportaciones netas mensuales</h2>
+                <InfoTooltip><p>Entradas menos salidas de dinero cada mes desde 2016. La linea amarilla es la media movil de 12 meses, que suaviza la estacionalidad y muestra la tendencia subyacente del negocio. Meses en rojo indican reembolsos netos (salida de capital).</p></InfoTooltip>
+              </div>
+              <p>Barras azules: aportacion mensual · Linea amarilla: media movil 12 meses</p>
+            </div>
+          </div>
+          <MonthlyInflowsChart data={monthlyInflowsData} />
         </section>
 
         <section className="seasonality-grid">

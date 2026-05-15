@@ -1336,29 +1336,6 @@ export default function App() {
           </div>
         </section>
 
-        {twrData && (
-          <section className="chart-section">
-            <div className="chart-top">
-              <div>
-                <div className="chart-title-row">
-                  <h2>Rentabilidad de la cartera (TWR)</h2>
-                  <InfoTooltip><p>Time-Weighted Return diario con convencion fin-de-dia: factor = (V_fin − CF_dia) / V_ini. Las aportaciones del dia no participan en la rentabilidad de ese dia (se asume compra al cierre). Aisla la rentabilidad pura de la cartera eliminando el efecto del tamano y timing de las aportaciones. Los factores diarios se encadenan por ano y mes.</p></InfoTooltip>
-                </div>
-                <p>
-                  TWR anualizado: <strong>{percent.format(twrData.twrAnnualized)}</strong>
-                  {" · "}
-                  {new Date().getFullYear()}: <strong>{percent.format(twrData.currentYearReturn ?? 0)}</strong> (parcial)
-                  {" · "}
-                  Acumulado: <strong>+{(twrData.twrAccumulated * 100).toFixed(0)}%</strong> en {twrData.yearsSpan.toFixed(1)} anos
-                </p>
-              </div>
-            </div>
-            <ReturnBarsChart annualReturns={twrData.annualReturns.filter((r) => r.year >= 2021)} />
-            <p className="chart-note" style={{ marginTop: 16, marginBottom: 4 }}>Desglose mensual — verde: rentabilidad positiva · rojo: negativa · intensidad proporcional a la magnitud</p>
-            <ReturnMonthlyHeatmap monthlyReturns={twrData.monthlyReturns.filter((r) => r.year >= 2021)} />
-            <p className="chart-note">* Ano en curso, datos parciales hasta el ultimo dato disponible.</p>
-          </section>
-        )}
 
         <section className="chart-section">
           <div className="chart-top">
@@ -1497,6 +1474,30 @@ export default function App() {
             </p>
           </article>
         </section>
+
+        {twrData && (
+          <section className="chart-section">
+            <div className="chart-top">
+              <div>
+                <div className="chart-title-row">
+                  <h2>Rentabilidad de la cartera (TWR)</h2>
+                  <InfoTooltip><p>Time-Weighted Return diario con convencion fin-de-dia: factor = (V_fin − CF_dia) / V_ini. Las aportaciones del dia no participan en la rentabilidad de ese dia (se asume compra al cierre). Aisla la rentabilidad pura de la cartera eliminando el efecto del tamano y timing de las aportaciones. Los factores diarios se encadenan por ano y mes.</p></InfoTooltip>
+                </div>
+                <p>
+                  TWR anualizado: <strong>{percent.format(twrData.twrAnnualized)}</strong>
+                  {" · "}
+                  {new Date().getFullYear()}: <strong>{percent.format(twrData.currentYearReturn ?? 0)}</strong> (parcial)
+                  {" · "}
+                  Acumulado: <strong>+{(twrData.twrAccumulated * 100).toFixed(0)}%</strong> en {twrData.yearsSpan.toFixed(1)} anos
+                </p>
+              </div>
+            </div>
+            <ReturnBarsChart annualReturns={twrData.annualReturns.filter((r) => r.year >= 2021)} />
+            <p className="chart-note" style={{ marginTop: 16, marginBottom: 4 }}>Desglose mensual — verde: rentabilidad positiva · rojo: negativa · intensidad proporcional a la magnitud</p>
+            <ReturnMonthlyHeatmap monthlyReturns={twrData.monthlyReturns.filter((r) => r.year >= 2021)} />
+            <p className="chart-note">* Ano en curso, datos parciales hasta el ultimo dato disponible.</p>
+          </section>
+        )}
 
         <section className="history-section">
           <div className="chart-title-row">

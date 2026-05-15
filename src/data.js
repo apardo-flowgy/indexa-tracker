@@ -188,11 +188,15 @@ export function buildTwrSeries(volumeRows) {
   const todayYear = new Date().getFullYear();
 
   for (let i = 1; i < volumeRows.length; i++) {
-    const prev  = volumeRows[i - 1];
-    const curr  = volumeRows[i];
-    const denom = prev.volume + curr.inflowsDaily / 2;
-    if (denom <= 0) continue;
-    const factor = curr.volume / denom;
+    const prev   = volumeRows[i - 1];
+    const curr   = volumeRows[i];
+    const halfCF = curr.inflowsDaily / 2;
+    const denom  = prev.volume + halfCF;
+    const numer  = curr.volume  - halfCF;
+    // Modified Dietz: (V_end - CF/2) / (V_start + CF/2)
+    // numer can be near-zero on huge-outflow days but shouldn't chain as 0
+    if (denom <= 0 || numer <= 0) continue;
+    const factor = numer / denom;
 
     const y  = curr.date.getFullYear();
     const m  = curr.date.getMonth();

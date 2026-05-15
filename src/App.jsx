@@ -1342,7 +1342,7 @@ export default function App() {
               <div>
                 <div className="chart-title-row">
                   <h2>Rentabilidad de la cartera (TWR)</h2>
-                  <InfoTooltip><p>Time-Weighted Return calculado con Modified Dietz diario: cada dia se calcula el factor V_fin / (V_ini + aportacion/2), asumiendo que el dinero nuevo entra a mitad del dia. Es el metodo estandar de la industria de fondos porque elimina el efecto del tamano y timing de las aportaciones, midiendo unicamente la rentabilidad de la cartera. El TWR anualizado es el CAGR de esos factores diarios encadenados.</p></InfoTooltip>
+                  <InfoTooltip><p>Time-Weighted Return con Modified Dietz diario: factor = (V_fin − CF/2) / (V_ini + CF/2), asumiendo que el dinero nuevo entra a mitad del dia. Aisla la rentabilidad pura de la cartera eliminando el efecto del tamano y timing de las aportaciones. Los factores diarios se encadenan por ano y mes.</p></InfoTooltip>
                 </div>
                 <p>
                   TWR anualizado: <strong>{percent.format(twrData.twrAnnualized)}</strong>
@@ -1353,9 +1353,9 @@ export default function App() {
                 </p>
               </div>
             </div>
-            <ReturnBarsChart annualReturns={twrData.annualReturns} />
+            <ReturnBarsChart annualReturns={twrData.annualReturns.filter((r) => r.year >= 2021)} />
             <p className="chart-note" style={{ marginTop: 16, marginBottom: 4 }}>Desglose mensual — verde: rentabilidad positiva · rojo: negativa · intensidad proporcional a la magnitud</p>
-            <ReturnMonthlyHeatmap monthlyReturns={twrData.monthlyReturns} />
+            <ReturnMonthlyHeatmap monthlyReturns={twrData.monthlyReturns.filter((r) => r.year >= 2021)} />
             <p className="chart-note">* Ano en curso, datos parciales hasta el ultimo dato disponible.</p>
           </section>
         )}

@@ -1613,6 +1613,25 @@ export default function App() {
           </article>
         </section>
 
+        {dataset.clientsHistory?.length > 1 && (
+          <section className="chart-section">
+            <div className="chart-top">
+              <div>
+                <div className="chart-title-row">
+                  <h2>Evolución de clientes</h2>
+                  <InfoTooltip><p>Número de clientes publicado en la página de testimonios de Indexa Capital, capturado automáticamente varias veces al día. El ritmo diario se calcula como la media de los últimos 30 días.</p></InfoTooltip>
+                </div>
+                <p>
+                  Clientes actuales: <strong>{dataset.clientsHistory.at(-1).clients.toLocaleString("es-ES")}</strong>
+                  {" · "}
+                  Datos desde {dataset.clientsHistory[0].date.toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric" })}
+                </p>
+              </div>
+            </div>
+            <ClientsChart data={dataset.clientsHistory} />
+          </section>
+        )}
+
         {twrData && (
           <section className="chart-section">
             <div className="chart-top">
@@ -1634,25 +1653,6 @@ export default function App() {
             <p className="chart-note" style={{ marginTop: 16, marginBottom: 4 }}>Desglose mensual — verde: rentabilidad positiva · rojo: negativa · intensidad proporcional a la magnitud</p>
             <ReturnMonthlyHeatmap monthlyReturns={twrData.monthlyReturns.filter((r) => r.year >= 2021)} />
             <p className="chart-note">* Ano en curso, datos parciales hasta el ultimo dato disponible.</p>
-          </section>
-        )}
-
-        {dataset.clientsHistory?.length > 1 && (
-          <section className="chart-section">
-            <div className="chart-top">
-              <div>
-                <div className="chart-title-row">
-                  <h2>Evolución de clientes</h2>
-                  <InfoTooltip><p>Número de clientes publicado en la página de testimonios de Indexa Capital, capturado automáticamente varias veces al día. El ritmo diario se calcula como la media de los últimos 30 días.</p></InfoTooltip>
-                </div>
-                <p>
-                  Clientes actuales: <strong>{dataset.clientsHistory.at(-1).clients.toLocaleString("es-ES")}</strong>
-                  {" · "}
-                  Datos desde {dataset.clientsHistory[0].date.toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric" })}
-                </p>
-              </div>
-            </div>
-            <ClientsChart data={dataset.clientsHistory} />
           </section>
         )}
 

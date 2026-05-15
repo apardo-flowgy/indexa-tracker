@@ -188,7 +188,8 @@ function AumChart({ data }) {
 const ARR_YOY_REFS = [
   { value: 0.30, label: "+30%", color: "#94A3B8" },
   { value: 0.40, label: "+40%", color: "#64748B" },
-  { value: 0.60, label: "+60%", color: "#475569" },
+  { value: 0.50, label: "+50%", color: "#475569" },
+  { value: 0.60, label: "+60%", color: "#334155" },
 ];
 
 const MONTH_LABELS_SHORT = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];

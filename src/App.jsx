@@ -197,7 +197,7 @@ const MONTH_LABELS_SHORT = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep
 function ArrYoYChart({ data }) {
   const W = 1100;
   const H = 310;
-  const pad = { top: 18, right: 90, bottom: 66, left: 72 };
+  const pad = { top: 26, right: 100, bottom: 56, left: 72 };
   const iW = W - pad.left - pad.right;
   const iH = H - pad.top - pad.bottom;
 
@@ -317,12 +317,12 @@ function ArrYoYChart({ data }) {
         </g>
       ))}
 
-      {/* Band annotation: base label left, today label right */}
-      <text x={(xBase12 + 4).toFixed(1)} y={H - pad.bottom + 54} fontSize="9" fill="#15803D" fontWeight="600">
-        ← base: {baseLabel}
+      {/* Band annotation: inside band, near top — no crowding with X-axis ticks */}
+      <text x={(xBase12 + 6).toFixed(1)} y={(pad.top + 14).toFixed(1)} fontSize="9" fill="#15803D" fontWeight="600" opacity="0.85">
+        ← {baseLabel}
       </text>
-      <text x={(xEnd).toFixed(1)} y={H - pad.bottom + 54} textAnchor="end" fontSize="9" fill="#15803D" fontWeight="600">
-        hoy: {todayLabel} →
+      <text x={(xEnd - 4).toFixed(1)} y={(pad.top + 14).toFixed(1)} textAnchor="end" fontSize="9" fill="#15803D" fontWeight="600" opacity="0.85">
+        {todayLabel} →
       </text>
 
       {/* Chart line */}

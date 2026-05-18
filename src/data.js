@@ -24,7 +24,7 @@ export const numberCompact = new Intl.NumberFormat("es-ES", {
   maximumFractionDigits: 1
 });
 
-export const PDF_BENCHMARK = [
+export const GVC_GAESCO_BENCHMARK = [
   { year: 2026, clients: 178000, aumEnd: 5816e6, fees: 13494e3, ebit: 6484e3, netProfit: 4863e3, netCash: 5917e3 },
   { year: 2027, clients: 230000, aumEnd: 7627e6, fees: 17738e3, ebit: 9840e3, netProfit: 7577e3, netCash: 12220e3 },
   { year: 2028, clients: 292000, aumEnd: 9922e6, fees: 23152e3, ebit: 14171e3, netProfit: 10911e3, netCash: 21508e3 },
@@ -32,13 +32,13 @@ export const PDF_BENCHMARK = [
   { year: 2030, clients: 454000, aumEnd: 16388e6, fees: 38496e3, ebit: 27007e3, netProfit: 20795e3, netCash: 52983e3 }
 ];
 
-// Objetivo oficial Indexa Capital: 30M€ ARR en 2030
-// A 0,25% de fee media implica 12.000M€ de AUM (CAGR ~22% desde 4.403M€ fin-2025)
+// Meta 2030 comunicada por Indexa Capital: 30M€ ARR.
+// A 0,25% de fee media implica 12.000M€ de AUM (CAGR ~22% desde 4.403M€ fin-2025).
 export const COMPANY_TARGET = {
   aumStart:  4_403e6,   // AUM real auditado 31/12/2025
   aumEnd:   12_000e6,   // implícito: arrEnd / feeRate
   arrStart:  11_008e3,  // 4403M × 0.25%
-  arrEnd:   30_000e3,   // objetivo público empresa
+  arrEnd:   30_000e3,   // meta pública de la compañía
   feeRate:  0.0025,
   yearStart: 2025,
   yearEnd:   2030,
@@ -51,7 +51,7 @@ function expInterp(start, end, yearFrac, totalYears) {
   return start * Math.pow(end / start, t / totalYears);
 }
 
-// Devuelve AUM y ARR objetivo para cualquier fecha
+// Devuelve la referencia propia de AUM y ARR para cualquier fecha.
 export function targetAtDate(date) {
   const ref = new Date("2025-12-31T00:00:00");
   const yearFrac = (date - ref) / (365.25 * 24 * 60 * 60 * 1000);
@@ -507,7 +507,7 @@ function buildHistoricalOperatingRows() {
 
 function buildProjectionComparison(modelRows) {
   return modelRows.map((row) => {
-    const benchmark = PDF_BENCHMARK.find((item) => item.year === row.year);
+    const benchmark = GVC_GAESCO_BENCHMARK.find((item) => item.year === row.year);
     return {
       year: row.year,
       clientsModel: row.clients,
@@ -683,7 +683,7 @@ export function buildTrackerData(dataset) {
   const { currentAum, currentArr, endDate: lastDate } = dataset.metrics.summary;
   const labelFmt = new Intl.DateTimeFormat("es-ES", { month: "short", year: "2-digit" });
 
-  // ── Objetivos hoy (curva exponencial) ──────────────────────────────────────
+  // ── Referencias hoy (curva exponencial propia) ─────────────────────────────
   const { aumTarget: targetAumNow, arrTarget: targetArrNow } = targetAtDate(today);
   const aumDeltaPct = targetAumNow > 0 ? currentAum / targetAumNow - 1 : null;
   const arrDeltaPct = targetArrNow > 0 ? currentArr / targetArrNow - 1 : null;
@@ -709,7 +709,7 @@ export function buildTrackerData(dataset) {
     const { aumTarget } = targetAtDate(cur);
     const ref = new Date("2025-12-31T00:00:00");
     const isFuture = cur > ref;
-    // Incluir diciembre 2025 como punto ancla de la curva objetivo (= 4.403M€)
+    // Incluir diciembre 2025 como punto ancla de la curva de referencia (= 4.403M€)
     // para que las dos líneas se unan visualmente en ese punto
     const isAnchor = cur.getFullYear() === 2025 && cur.getMonth() === 11;
     chartData.push({

@@ -26,6 +26,10 @@ function DisclaimerModal({ onClose }) {
           Los datos provienen de fuentes públicas y pueden contener inexactitudes.
           Esta herramienta no constituye asesoramiento financiero.
         </p>
+        <p className="modal-body">
+          La web combina datos públicos, una meta 2030 comunicada por la compañía,
+          estimaciones de GVC Gaesco y cálculos propios.
+        </p>
         <button className="modal-btn" onClick={onClose}>
           Entendido
         </button>
@@ -57,12 +61,70 @@ function Footer({ onOpenDisclaimer }) {
   );
 }
 
+function ContextBanner({ today, lastDate }) {
+  return (
+    <section className="context-band" aria-label="Contexto del dashboard">
+      <div>
+        <strong>Dashboard independiente, no afiliado a Indexa Capital.</strong>
+        <p>
+          Combina datos públicos, una meta 2030 comunicada por la compañía, estimaciones
+          del informe de GVC Gaesco del 13 de abril de 2026 y cálculos propios.
+        </p>
+      </div>
+      <div className="context-dates">
+        <span>Último dato público: <strong>{fmtDate(lastDate)}</strong></span>
+        <span>Cálculos actualizados: <strong>{fmtDate(today)}</strong></span>
+      </div>
+    </section>
+  );
+}
+
+function SourceMethodology() {
+  return (
+    <section className="methodology-section">
+      <div className="chart-title-row">
+        <h2>Fuentes y metodología</h2>
+      </div>
+      <div className="methodology-grid">
+        <div>
+          <h3>Qué es dato real</h3>
+          <p>
+            AUM, ARR estimado, aportaciones y clientes se construyen a partir de datos
+            públicos de Indexa Capital y sus documentos para inversores.
+          </p>
+        </div>
+        <div>
+          <h3>Qué es referencia propia</h3>
+          <p>
+            La curva 2030 toma como meta 30 M EUR de ARR y deriva un AUM implícito de
+            12.000 M EUR si la fee media se mantiene en el 0,25%.
+          </p>
+        </div>
+        <div>
+          <h3>Qué es estimación externa</h3>
+          <p>
+            Las cifras de clientes y AUM de 2030 atribuidas al informe son el escenario de GVC
+            Gaesco, no una guía oficial de Indexa ni una previsión propia de esta web.
+          </p>
+        </div>
+        <div>
+          <h3>Cómo se calcula</h3>
+          <p>
+            ARR = AUM por fee media anual. La proyección de cierre de año extrapola las
+            aportaciones netas recientes y asume una rentabilidad de mercado del 5% anual.
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function statusInfo(delta) {
   if (delta == null) return null;
-  if (delta >= 0.05) return { label: "Adelantado", cls: "badge-ahead" };
-  if (delta >= -0.02) return { label: "En camino", cls: "badge-on-track" };
-  if (delta >= -0.08) return { label: "Ligeramente atras", cls: "badge-behind" };
-  return { label: "Por detras", cls: "badge-off-track" };
+  if (delta >= 0.05) return { label: "Por encima", cls: "badge-ahead" };
+  if (delta >= -0.02) return { label: "En línea", cls: "badge-on-track" };
+  if (delta >= -0.08) return { label: "Algo por debajo", cls: "badge-behind" };
+  return { label: "Por debajo", cls: "badge-off-track" };
 }
 
 function fmtDate(date) {
@@ -79,7 +141,7 @@ function fmtPctPoint(value) {
 function StatusBadge({ delta }) {
   const info = statusInfo(delta);
   if (!info) return null;
-  return <span className={`badge ${info.cls}`}>{info.label}</span>;
+  return <span className={`badge ${info.cls}`}>vs ref. {info.label}</span>;
 }
 
 function MetricCard({ label, value, sub, delta, info }) {
@@ -1062,7 +1124,7 @@ function StackedComparisonBarChart({ data }) {
   );
 }
 
-// Clientes históricos anuales (fin de año, datos auditados / PDF benchmark)
+// Clientes históricos anuales (fin de año, datos auditados / benchmark GVC Gaesco)
 const CLIENTS_ANNUAL = [
   { year: 2021, clients: 50000 },
   { year: 2022, clients: 59000 },
@@ -1071,7 +1133,7 @@ const CLIENTS_ANNUAL = [
   { year: 2025, clients: 134000 },
 ];
 const CLIENTS_TARGETS = [
-  { year: 2025, clients: 134000 }, // ancla de la curva objetivo
+  { year: 2025, clients: 134000 }, // ancla de la referencia GVC Gaesco
   { year: 2026, clients: 178000 },
   { year: 2027, clients: 230000 },
   { year: 2028, clients: 292000 },
@@ -1194,7 +1256,7 @@ function ClientsChart({ data }) {
         <circle cx="6" cy="0" r="4" fill="#0F766E" />
         <text x="14" y="4" fontSize="10" fill="#718096">Real</text>
         <line x1="60" y1="0" x2="82" y2="0" stroke="#CBD5E1" strokeWidth="1.5" strokeDasharray="6 3" />
-        <text x="88" y="4" fontSize="10" fill="#A0AEC0">Objetivo PDF</text>
+        <text x="88" y="4" fontSize="10" fill="#A0AEC0">Estimación GVC Gaesco</text>
       </g>
     </svg>
   );
@@ -1214,7 +1276,7 @@ function HistoryTable({ yearlyRows }) {
             <th>Ano</th>
             <th>AUM fin ano</th>
             <th>Crec. AUM</th>
-            <th>ARR run rate</th>
+            <th>ARR estimado</th>
             <th>Crec. ARR</th>
             <th>Fee media</th>
           </tr>
@@ -1235,12 +1297,12 @@ function HistoryTable({ yearlyRows }) {
                 </td>
                 <td>
                   {euroCompact.format(row.volumeEnd)}
-                  {isCurrent && milestone ? <span className="obj-tag"> / obj. {euroCompact.format(milestone.aumTarget)}</span> : null}
+                  {isCurrent && milestone ? <span className="obj-tag"> / ref. {euroCompact.format(milestone.aumTarget)}</span> : null}
                 </td>
                 <td className={yoyAum != null && yoyAum > 0 ? "col-positive" : ""}>{yoyAum != null ? percent.format(yoyAum) : "-"}</td>
                 <td>
                   {euroCompact.format(row.arrEnd)}
-                  {isCurrent && milestone ? <span className="obj-tag"> / obj. {euroCompact.format(milestone.arrTarget)}</span> : null}
+                  {isCurrent && milestone ? <span className="obj-tag"> / ref. {euroCompact.format(milestone.arrTarget)}</span> : null}
                 </td>
                 <td className={yoyArr != null && yoyArr > 0 ? "col-positive" : ""}>{yoyArr != null ? percent.format(yoyArr) : "-"}</td>
                 <td>{row.feePctEnd ? percent.format(row.feePctEnd) : "-"}</td>
@@ -1250,7 +1312,7 @@ function HistoryTable({ yearlyRows }) {
 
           {futureTargets.length > 0 && (
             <tr className="col-divider">
-              <td colSpan={6}>Objetivo exponencial - 30M EUR ARR en 2030</td>
+              <td colSpan={6}>Referencia propia - 30 M EUR ARR en 2030</td>
             </tr>
           )}
 
@@ -1435,42 +1497,46 @@ export default function App() {
           <div>
             <h1>Indexa Capital Tracker</h1>
             <p className="header-sub">
-              Objetivo: 30M EUR ARR en 2030 · implica {euroCompact.format(COMPANY_TARGET.aumEnd)} de AUM a {percent.format(COMPANY_TARGET.feeRate)} de fee
+              Seguimiento independiente. Meta 2030 comunicada por la compañía: {euroCompact.format(COMPANY_TARGET.arrEnd)} ARR · AUM implícito: {euroCompact.format(COMPANY_TARGET.aumEnd)} con fee media del {percent.format(COMPANY_TARGET.feeRate)}
             </p>
           </div>
           <div className="header-meta">
-            <span>Ultimo dato</span>
+            <span>Último dato público</span>
             <strong>{fmtDate(lastDate)}</strong>
+            <span>Cálculos actualizados</span>
+            <strong>{fmtDate(today)}</strong>
           </div>
         </div>
       </header>
 
       <main className="app-main">
+        <ContextBanner today={today} lastDate={lastDate} />
+
         <section>
-          <p className="section-eyebrow">Seguimiento del objetivo · {fmtDate(today)}</p>
+          <p className="section-eyebrow">Resumen vs referencia 2030 · {fmtDate(today)}</p>
           <div className="status-grid">
             <MetricCard
-              label="AUM actual"
+              label="AUM último dato público"
               value={euroCompact.format(currentAum)}
-              sub={`Objetivo hoy: ${euroCompact.format(targetAumNow)} · Objetivo fin de ano: ${euroCompact.format(targetYearEnd)}`}
+              sub={`Referencia hoy: ${euroCompact.format(targetAumNow)} · Referencia cierre de año: ${euroCompact.format(targetYearEnd)}`}
               delta={aumDeltaPct}
-              info={<p>Activos Bajo Gestion a la fecha del ultimo dato. Se compara con la curva objetivo exponencial (CAGR ~22% desde {euroCompact.format(COMPANY_TARGET.aumStart)} a fin de 2025 hasta {euroCompact.format(COMPANY_TARGET.aumEnd)} en 2030). El badge indica si el AUM esta por encima o por debajo de esa curva hoy.</p>}
+              info={<p>Activos bajo gestión a la fecha del último dato público. Se compara con una curva de referencia propia: CAGR ~22% desde {euroCompact.format(COMPANY_TARGET.aumStart)} a fin de 2025 hasta {euroCompact.format(COMPANY_TARGET.aumEnd)} en 2030. El badge indica la posición frente a esa referencia.</p>}
             />
 
             <MetricCard
-              label="ARR run rate"
+              label="ARR estimado"
               value={euroCompact.format(currentArr)}
-              sub={`Objetivo hoy: ${euroCompact.format(targetArrNow)} · Meta 2030: ${euroCompact.format(COMPANY_TARGET.arrEnd)}`}
+              sub={`Referencia hoy: ${euroCompact.format(targetArrNow)} · Meta 2030 comunicada: ${euroCompact.format(COMPANY_TARGET.arrEnd)}`}
               delta={arrDeltaPct}
-              info={<p>Ingresos Anuales Recurrentes estimados: AUM actual × comision media anual. Es el ritmo de ingresos si el AUM se mantuviera constante un ano entero. El objetivo publico de Indexa es alcanzar 30M€ ARR en 2030.</p>}
+              info={<p>Ingresos anuales recurrentes estimados: AUM actual × comisión media anual. Es el ritmo de ingresos si el AUM se mantuviera constante un año entero. La meta de 30 M EUR ARR en 2030 fue comunicada por Indexa y está recogida en el informe de GVC Gaesco.</p>}
             />
 
             <MetricCard
-              label="Proyeccion AUM fin de ano"
+              label="AUM fin de año estimado"
               value={euroCompact.format(projectedYeAum)}
-              sub={`${euroCompact.format(avgMonthlyInflow)}/mes neto · media 3 meses · objetivo: ${euroCompact.format(targetYearEnd)}`}
+              sub={`Estimación propia · ${euroCompact.format(avgMonthlyInflow)}/mes neto · referencia: ${euroCompact.format(targetYearEnd)}`}
               delta={paceDeltaPct}
-              info={<><p>Estimacion del AUM a 31 de diciembre calculada como:</p><p style={{marginTop:6, fontFamily:"monospace", fontSize:"0.82em", background:"rgba(255,255,255,0.08)", padding:"4px 8px", borderRadius:4}}>AUM × (1 + 5%/12)^meses + aportaciones_medias × meses</p><p style={{marginTop:6}}>Se asume un 5% anual de rentabilidad de mercado y se extrapola el ritmo de aportaciones netas de los ultimos 3 meses.</p></>}
+              info={<><p>Estimación propia del AUM a 31 de diciembre calculada como:</p><p style={{marginTop:6, fontFamily:"monospace", fontSize:"0.82em", background:"rgba(255,255,255,0.08)", padding:"4px 8px", borderRadius:4}}>AUM × (1 + 5%/12)^meses + aportaciones_medias × meses</p><p style={{marginTop:6}}>Se asume un 5% anual de rentabilidad de mercado y se extrapola el ritmo de aportaciones netas de los últimos 3 meses.</p></>}
             />
           </div>
         </section>
@@ -1506,14 +1572,14 @@ export default function App() {
           <div className="chart-top">
             <div>
               <div className="chart-title-row">
-                <h2>Trayectoria de AUM vs objetivo exponencial</h2>
-                <InfoTooltip><p>Evolucion mensual del AUM real (linea verde continua) junto con la curva objetivo exponencial (linea gris punteada). La curva se ancla en {euroCompact.format(COMPANY_TARGET.aumStart)} a fin de 2025 y crece a CAGR ~22% hasta {euroCompact.format(COMPANY_TARGET.aumEnd)} en 2030, lo que implica 30M€ ARR a una comision media del 0,25%.</p></InfoTooltip>
+                <h2>AUM real vs curva de referencia 2030</h2>
+                <InfoTooltip><p>Evolución mensual del AUM real (línea verde continua) junto con una curva de referencia propia (línea gris punteada). La curva se ancla en {euroCompact.format(COMPANY_TARGET.aumStart)} a fin de 2025 y crece a CAGR ~22% hasta {euroCompact.format(COMPANY_TARGET.aumEnd)} en 2030, el AUM implícito para alcanzar 30 M EUR ARR con una comisión media del 0,25%.</p></InfoTooltip>
               </div>
-              <p>Curva objetivo: CAGR ~22% desde {euroCompact.format(COMPANY_TARGET.aumStart)} (fin 2025) hasta {euroCompact.format(COMPANY_TARGET.aumEnd)} (2030)</p>
+              <p>Curva de referencia propia: CAGR ~22% desde {euroCompact.format(COMPANY_TARGET.aumStart)} (fin 2025) hasta {euroCompact.format(COMPANY_TARGET.aumEnd)} (2030)</p>
             </div>
             <div className="chart-legend">
               <span><i className="leg-dot real" />Real mensual</span>
-              <span><i className="leg-dash" />Objetivo exponencial</span>
+              <span><i className="leg-dash" />Referencia propia</span>
             </div>
           </div>
           <AumChart data={chartData} />
@@ -1617,7 +1683,7 @@ export default function App() {
               <div>
                 <div className="chart-title-row">
                   <h2>Evolución de clientes</h2>
-                  <InfoTooltip><p>Número de clientes publicado en la página de testimonios de Indexa Capital, capturado automáticamente varias veces al día. El ritmo diario se calcula como la media de los últimos 30 días.</p></InfoTooltip>
+                  <InfoTooltip><p>Número de clientes publicado en la página de testimonios de Indexa Capital, capturado automáticamente varias veces al día. La línea gris muestra la estimación de GVC Gaesco hasta 2030, no una guía oficial de Indexa. El ritmo diario se calcula como la media de los últimos 30 días.</p></InfoTooltip>
                 </div>
                 <p>
                   Clientes actuales: <strong>{dataset.clientsHistory.at(-1).clients.toLocaleString("es-ES")}</strong>
@@ -1656,14 +1722,16 @@ export default function App() {
 
         <section className="history-section">
           <div className="chart-title-row">
-            <h2>Historico y hitos objetivo</h2>
-            <InfoTooltip><p>Datos reales auditados del AUM y ARR a fin de cada ano. Las filas en cursiva son los <strong>hitos objetivo</strong> de la curva exponencial hasta 2030, no datos reales. La fee media futura se asume constante al {percent.format(COMPANY_TARGET.feeRate)} sobre AUM.</p></InfoTooltip>
+            <h2>Histórico y referencias 2030</h2>
+            <InfoTooltip><p>Datos reales auditados del AUM y ARR a fin de cada año. Las filas en cursiva son <strong>referencias propias</strong> de la curva 2030, no datos reales ni guía oficial. La fee media futura se asume constante al {percent.format(COMPANY_TARGET.feeRate)} sobre AUM.</p></InfoTooltip>
           </div>
           <p className="section-sub">
-            Datos reales auditados + curva exponencial hasta 2030 · Fee media constante al {percent.format(COMPANY_TARGET.feeRate)} sobre AUM
+            Datos reales auditados + curva de referencia hasta 2030 · Fee media constante al {percent.format(COMPANY_TARGET.feeRate)} sobre AUM
           </p>
           <HistoryTable yearlyRows={dataset.yearlyRows} />
         </section>
+
+        <SourceMethodology />
       </main>
       <Footer onOpenDisclaimer={() => setShowDisclaimer(true)} />
     </div>

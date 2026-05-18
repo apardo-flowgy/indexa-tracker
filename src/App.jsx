@@ -76,6 +76,90 @@ const I18N = {
     ownEstimate: "Estimación propia",
     netPerMonth: "mes neto",
     reference: "referencia",
+    vsReference: "vs ref.",
+    aboveReference: "Por encima",
+    onReference: "En linea",
+    slightlyBelowReference: "Algo por debajo",
+    belowReference: "Por debajo",
+    moreInformation: "Mas informacion",
+    latestPublicAumInfo: "Activos bajo gestion a la fecha del ultimo dato publico. Se compara con una curva de referencia propia: CAGR ~22% desde",
+    latestPublicAumInfoMid: "a fin de 2025 hasta",
+    latestPublicAumInfoEnd: "en 2030. El badge indica la posicion frente a esa referencia.",
+    estimatedArrInfo: "Ingresos anuales recurrentes estimados: AUM actual x comision media anual. Es el ritmo de ingresos si el AUM se mantuviera constante un ano entero. La meta de 30 M EUR ARR en 2030 fue comunicada por Indexa y esta recogida en el informe de GVC Gaesco.",
+    yearEndAumInfoTitle: "Estimacion propia del AUM a 31 de diciembre calculada como:",
+    yearEndAumFormula: "AUM x (1 + 5%/12)^meses + aportaciones_medias x meses",
+    yearEndAumInfoEnd: "Se asume un 5% anual de rentabilidad de mercado y se extrapola el ritmo de aportaciones netas de los ultimos 3 meses.",
+    arrYoyTitle: "YoY diario de ARR",
+    arrYoyInfo: "Crecimiento interanual del ARR dia a dia desde 2022. Para cada fecha se compara el ARR con el valor del mismo dia hace 12 meses, tomando el dato mas reciente disponible si no existe exactamente.",
+    arrYoySub: "ARR actual / ARR hace 12 meses - 1 · datos diarios desde 2022",
+    arrIndexedTitle: "ARR indexado a inicio de ano · comparativa anual",
+    arrIndexedInfo: "Cada linea parte de 0% el 1 de enero y muestra cuanto crecio el ARR a lo largo de ese ano. Permite comparar la velocidad de crecimiento dentro del ano independientemente del nivel absoluto.",
+    arrIndexedSub: "ARR relativo a su valor a 1 de enero de cada ano · datos diarios desde 2019",
+    aumReferenceTitle: "AUM real vs curva de referencia 2030",
+    aumReferenceInfo: "Evolucion mensual del AUM real junto con una curva de referencia propia. La curva se ancla a fin de 2025 y crece a CAGR ~22% hasta 2030.",
+    aumReferenceSub: "Curva de referencia propia: CAGR ~22% desde",
+    yearEnd2025: "fin 2025",
+    realMonthly: "Real mensual",
+    ownReferenceLegend: "Referencia propia",
+    annualNetInflowsTitle: "Aportaciones netas anuales",
+    annualNetInflowsInfo: "Suma de aportaciones netas de cada ano. La barra del ano en curso muestra el acumulado hasta el ultimo dato; la extension transparente es la proyeccion al cierre del ano al ritmo actual. * = dato parcial.",
+    annualNetInflowsSub: "Vision agregada por ano · * proyeccion al cierre del ano al ritmo actual",
+    monthlyNetInflowsTitle: "Aportaciones netas mensuales",
+    monthlyNetInflowsInfo: "Entradas menos salidas de dinero cada mes desde 2016. La linea amarilla es la media movil de 12 meses. La extension transparente en el ultimo mes es la proyeccion al cierre del mes al ritmo actual.",
+    monthlyNetInflowsSub: "Barras azules: mes completo · extension translucida: proyeccion fin de mes · linea: media movil 12m",
+    ytdComparisonTitle: "YTD - comparativa entre anos",
+    ytdComparisonInfo: "Barra solida: aportaciones acumuladas desde el 1 de enero hasta el mismo dia del ano que el ultimo dato disponible. Barra clara detras: total del ano completo o proyeccion para el ano actual. El porcentaje es el crecimiento vs el mismo periodo del ano anterior.",
+    ytdComparisonSubPrefix: "Solido: 1 ene ->",
+    ytdComparisonSubSuffix: "claro: ano completo / proyectado · % = YoY del mismo periodo",
+    mtdComparisonTitle: "MTD - comparativa entre anos",
+    mtdComparisonInfo: "Barra solida: aportaciones del 1 al dia actual del mes, en cada ano. Barra clara: total del mes completo o proyeccion para el mes actual.",
+    mtdComparisonSubPrefix: "Solido: 1-",
+    mtdComparisonSubSuffix: "claro: mes completo / proyectado · % = YoY del mismo periodo",
+    today: "hoy",
+    monthlySeasonalityTitle: "Estacionalidad mensual de aportaciones",
+    monthlySeasonalityInfo: "Para cada mes, muestra las aportaciones netas como porcentaje de las aportaciones acumuladas a 1 de enero del mismo ano. Normalizar por la base de enero permite comparar patrones estacionales entre anos de distinto tamano.",
+    monthlySeasonalitySub: "Aportaciones mensuales / aportaciones acumuladas a 1 de enero (%) · ultimos 5 anos",
+    monthlySeasonalityNote: "Grafico de seguimiento para ver si cada mes viene por encima o por debajo del patron historico. El ano en curso puede ir parcial.",
+    quarterlySeasonalityTitle: "Estacionalidad trimestral de aportaciones",
+    quarterlySeasonalityInfo: "La misma metrica que la estacionalidad mensual pero agregada por trimestre. Suaviza el ruido de meses individuales.",
+    quarterlySeasonalitySub: "Misma metrica agregada por trimestre para suavizar ruido mensual y ver mejor la pauta anual",
+    quarterlySeasonalityNote: "Cada punto recoge las aportaciones netas del trimestre sobre la base de aportaciones acumuladas al 1 de enero del mismo ano.",
+    clientsTitle: "Evolucion de clientes",
+    clientsInfo: "Numero de clientes publicado en la pagina de testimonios de Indexa Capital, capturado automaticamente varias veces al dia. La linea gris muestra la estimacion de GVC Gaesco hasta 2030, no una guia oficial de Indexa.",
+    currentClients: "Clientes actuales",
+    dataSince: "Datos desde",
+    perDay: "dia",
+    lastDays: "ult.",
+    real: "Real",
+    gvcEstimate: "Estimacion GVC Gaesco",
+    portfolioReturnTitle: "Rentabilidad de la cartera (TWR)",
+    portfolioReturnInfo: "Time-Weighted Return diario con convencion fin-de-dia. Aisla la rentabilidad pura de la cartera eliminando el efecto del tamano y timing de las aportaciones.",
+    annualizedTwr: "TWR anualizado",
+    partial: "parcial",
+    accumulated: "Acumulado",
+    years: "anos",
+    monthlyBreakdownNote: "Desglose mensual - verde: rentabilidad positiva · rojo: negativa · intensidad proporcional a la magnitud",
+    currentYearPartialNote: "* Ano en curso, datos parciales hasta el ultimo dato disponible.",
+    historyTitle: "Historico y referencias 2030",
+    historyInfo: "Datos reales auditados del AUM y ARR a fin de cada ano. Las filas en cursiva son referencias propias de la curva 2030, no datos reales ni guia oficial.",
+    historySub: "Datos reales auditados + curva de referencia hasta 2030 · Fee media constante al",
+    year: "Ano",
+    yearEndAum: "AUM fin ano",
+    aumGrowth: "Crec. AUM",
+    estimatedArrTable: "ARR estimado",
+    arrGrowth: "Crec. ARR",
+    averageFee: "Fee media",
+    ownReferenceRow: "Referencia propia - 30 M EUR ARR en 2030",
+    periodComparisonSub: "Aportaciones netas · ultimos 4 anos +",
+    projected: "proyectado",
+    monthBarsInfo: "Cada barra muestra las aportaciones netas brutas del mismo mes en cada uno de los ultimos 4 anos completos.",
+    quarterBarsInfo: "Cada barra muestra las aportaciones netas brutas del mismo trimestre en cada uno de los ultimos 4 anos completos.",
+    projectedMonthInfo: "La barra proyectada es una proyeccion al mes completo calculada asi:",
+    projectedQuarterInfo: "La barra proyectada es una proyeccion al trimestre completo calculada asi:",
+    monthlyFormula: "aportaciones acumuladas / dias transcurridos x dias totales del mes",
+    quarterlyFormula: "aportaciones acumuladas / dias transcurridos x dias totales del trimestre",
+    monthlyUsefulness: "Util para ver si el ritmo de este mes es alto o bajo comparado con anos anteriores.",
+    quarterlyUsefulness: "Util para ver si el ritmo de este trimestre es alto o bajo comparado con anos anteriores.",
   },
   en: {
     importantNotice: "Important notice",
@@ -139,6 +223,90 @@ const I18N = {
     ownEstimate: "Own estimate",
     netPerMonth: "net per month",
     reference: "reference",
+    vsReference: "vs ref.",
+    aboveReference: "Above",
+    onReference: "On track",
+    slightlyBelowReference: "Slightly below",
+    belowReference: "Below",
+    moreInformation: "More information",
+    latestPublicAumInfo: "Assets under management at the latest public data point. It is compared with a proprietary reference curve: ~22% CAGR from",
+    latestPublicAumInfoMid: "at year-end 2025 to",
+    latestPublicAumInfoEnd: "in 2030. The badge shows the position versus that reference.",
+    estimatedArrInfo: "Estimated annual recurring revenue: current AUM x annual average fee. It is the revenue run-rate if AUM stayed constant for a full year. The EUR 30m ARR target for 2030 was communicated by Indexa and is included in the GVC Gaesco report.",
+    yearEndAumInfoTitle: "Proprietary estimate of AUM at 31 December calculated as:",
+    yearEndAumFormula: "AUM x (1 + 5%/12)^months + average_inflows x months",
+    yearEndAumInfoEnd: "Assumes 5% annual market return and extrapolates the net inflow pace from the last 3 months.",
+    arrYoyTitle: "Daily ARR YoY",
+    arrYoyInfo: "Year-on-year ARR growth day by day since 2022. Each date compares ARR with the value from the same day 12 months earlier, using the most recent available data point when an exact match does not exist.",
+    arrYoySub: "Current ARR / ARR 12 months ago - 1 · daily data since 2022",
+    arrIndexedTitle: "ARR indexed to start of year · annual comparison",
+    arrIndexedInfo: "Each line starts at 0% on 1 January and shows how much ARR grew during that year. It compares growth speed within the year regardless of absolute level.",
+    arrIndexedSub: "ARR relative to its 1 January value each year · daily data since 2019",
+    aumReferenceTitle: "Actual AUM vs 2030 reference curve",
+    aumReferenceInfo: "Monthly actual AUM evolution alongside a proprietary reference curve. The curve is anchored at year-end 2025 and grows at ~22% CAGR to 2030.",
+    aumReferenceSub: "Proprietary reference curve: ~22% CAGR from",
+    yearEnd2025: "year-end 2025",
+    realMonthly: "Monthly actual",
+    ownReferenceLegend: "Proprietary reference",
+    annualNetInflowsTitle: "Annual net inflows",
+    annualNetInflowsInfo: "Sum of net inflows each year. The current-year bar shows the accumulated amount to the latest data point; the transparent extension is the year-end projection at the current pace. * = partial data.",
+    annualNetInflowsSub: "Aggregated view by year · * year-end projection at current pace",
+    monthlyNetInflowsTitle: "Monthly net inflows",
+    monthlyNetInflowsInfo: "Money in minus money out each month since 2016. The yellow line is the 12-month moving average. The transparent extension in the latest month is the month-end projection at the current pace.",
+    monthlyNetInflowsSub: "Blue bars: full month · translucent extension: month-end projection · line: 12m moving average",
+    ytdComparisonTitle: "YTD - year comparison",
+    ytdComparisonInfo: "Solid bar: inflows accumulated from 1 January to the same day of year as the latest available data point. Pale bar behind: full-year total or projection for the current year. The percentage is growth versus the same period of the prior year.",
+    ytdComparisonSubPrefix: "Solid: Jan 1 ->",
+    ytdComparisonSubSuffix: "pale: full year / projected · % = YoY for same period",
+    mtdComparisonTitle: "MTD - year comparison",
+    mtdComparisonInfo: "Solid bar: inflows from day 1 to the current day of the month, for each year. Pale bar: full-month total or projection for the current month.",
+    mtdComparisonSubPrefix: "Solid: 1-",
+    mtdComparisonSubSuffix: "pale: full month / projected · % = YoY for same period",
+    today: "today",
+    monthlySeasonalityTitle: "Monthly inflow seasonality",
+    monthlySeasonalityInfo: "For each month, shows net inflows as a percentage of accumulated inflows on 1 January of the same year. Normalizing by the January base makes seasonal patterns comparable across years of different sizes.",
+    monthlySeasonalitySub: "Monthly inflows / accumulated inflows at 1 January (%) · last 5 years",
+    monthlySeasonalityNote: "Tracking chart to see whether each month is above or below the historical pattern. The current year can be partial.",
+    quarterlySeasonalityTitle: "Quarterly inflow seasonality",
+    quarterlySeasonalityInfo: "The same metric as monthly seasonality but aggregated by quarter. It smooths monthly noise.",
+    quarterlySeasonalitySub: "Same metric aggregated by quarter to smooth monthly noise and highlight the annual pattern",
+    quarterlySeasonalityNote: "Each point captures quarterly net inflows over accumulated inflows at 1 January of the same year.",
+    clientsTitle: "Client evolution",
+    clientsInfo: "Number of clients published on Indexa Capital's testimonials page, captured automatically several times per day. The grey line shows GVC Gaesco's estimate to 2030, not official Indexa guidance.",
+    currentClients: "Current clients",
+    dataSince: "Data since",
+    perDay: "day",
+    lastDays: "last",
+    real: "Actual",
+    gvcEstimate: "GVC Gaesco estimate",
+    portfolioReturnTitle: "Portfolio return (TWR)",
+    portfolioReturnInfo: "Daily Time-Weighted Return with end-of-day convention. It isolates pure portfolio performance by removing the effect of contribution size and timing.",
+    annualizedTwr: "Annualized TWR",
+    partial: "partial",
+    accumulated: "Accumulated",
+    years: "years",
+    monthlyBreakdownNote: "Monthly breakdown - green: positive return · red: negative return · intensity proportional to magnitude",
+    currentYearPartialNote: "* Current year, partial data to the latest available data point.",
+    historyTitle: "History and 2030 references",
+    historyInfo: "Audited actual AUM and ARR data at year-end. Italic rows are proprietary references from the 2030 curve, not actual data or official guidance.",
+    historySub: "Audited actual data + reference curve to 2030 · Average fee constant at",
+    year: "Year",
+    yearEndAum: "Year-end AUM",
+    aumGrowth: "AUM growth",
+    estimatedArrTable: "Estimated ARR",
+    arrGrowth: "ARR growth",
+    averageFee: "Average fee",
+    ownReferenceRow: "Proprietary reference - EUR 30m ARR in 2030",
+    periodComparisonSub: "Net inflows · last 4 years +",
+    projected: "projected",
+    monthBarsInfo: "Each bar shows gross net inflows for the same month in each of the last 4 complete years.",
+    quarterBarsInfo: "Each bar shows gross net inflows for the same quarter in each of the last 4 complete years.",
+    projectedMonthInfo: "The projected bar is a full-month projection calculated as:",
+    projectedQuarterInfo: "The projected bar is a full-quarter projection calculated as:",
+    monthlyFormula: "accumulated inflows / elapsed days x total days in month",
+    quarterlyFormula: "accumulated inflows / elapsed days x total days in quarter",
+    monthlyUsefulness: "Useful to see whether this month's pace is high or low compared with previous years.",
+    quarterlyUsefulness: "Useful to see whether this quarter's pace is high or low compared with previous years.",
   },
 };
 
@@ -260,7 +428,7 @@ function LanguageSwitch({ activePage, lang, t }) {
   );
 }
 
-function ContextBanner({ today, lastDate, t }) {
+function ContextBanner({ today, lastDate, lang, t }) {
   return (
     <div className="context-band" aria-label={t.contextLabel}>
       <div>
@@ -270,8 +438,8 @@ function ContextBanner({ today, lastDate, t }) {
         </p>
       </div>
       <div className="context-dates">
-        <span>{t.lastPublicData}: <strong>{fmtDate(lastDate)}</strong></span>
-        <span>{t.calculationsUpdated}: <strong>{fmtDate(today)}</strong></span>
+        <span>{t.lastPublicData}: <strong>{fmtDate(lastDate, lang)}</strong></span>
+        <span>{t.calculationsUpdated}: <strong>{fmtDate(today, lang)}</strong></span>
       </div>
     </div>
   );
@@ -331,7 +499,7 @@ function ThesisTeaser({ lang, t }) {
 function DashboardIntro({ today, lastDate, lang, t }) {
   return (
     <section className="dashboard-intro">
-      <ContextBanner today={today} lastDate={lastDate} t={t} />
+      <ContextBanner today={today} lastDate={lastDate} lang={lang} t={t} />
       <ThesisTeaser lang={lang} t={t} />
     </section>
   );
@@ -628,17 +796,17 @@ function InvestmentThesisPage({ today, lastDate, lang }) {
   );
 }
 
-function statusInfo(delta) {
+function statusInfo(delta, t) {
   if (delta == null) return null;
-  if (delta >= 0.05) return { label: "Por encima", cls: "badge-ahead" };
-  if (delta >= -0.02) return { label: "En línea", cls: "badge-on-track" };
-  if (delta >= -0.08) return { label: "Algo por debajo", cls: "badge-behind" };
-  return { label: "Por debajo", cls: "badge-off-track" };
+  if (delta >= 0.05) return { label: t.aboveReference, cls: "badge-ahead" };
+  if (delta >= -0.02) return { label: t.onReference, cls: "badge-on-track" };
+  if (delta >= -0.08) return { label: t.slightlyBelowReference, cls: "badge-behind" };
+  return { label: t.belowReference, cls: "badge-off-track" };
 }
 
-function fmtDate(date) {
+function fmtDate(date, lang = "es") {
   return date
-    ? new Intl.DateTimeFormat("es-ES", { day: "numeric", month: "long", year: "numeric" }).format(date)
+    ? new Intl.DateTimeFormat(lang === "en" ? "en-GB" : "es-ES", { day: "numeric", month: "long", year: "numeric" }).format(date)
     : "-";
 }
 
@@ -673,13 +841,13 @@ function parseLocalizedRoute(route) {
   };
 }
 
-function StatusBadge({ delta }) {
-  const info = statusInfo(delta);
+function StatusBadge({ delta, t }) {
+  const info = statusInfo(delta, t);
   if (!info) return null;
-  return <span className={`badge ${info.cls}`}>vs ref. {info.label}</span>;
+  return <span className={`badge ${info.cls}`}>{t.vsReference} {info.label}</span>;
 }
 
-function MetricCard({ label, value, sub, delta, info }) {
+function MetricCard({ label, value, sub, delta, info, t }) {
   return (
     <article className="metric-card">
       <div className="metric-label-row">
@@ -688,7 +856,7 @@ function MetricCard({ label, value, sub, delta, info }) {
       </div>
       <strong className="metric-value">{value}</strong>
       <span className="metric-sub">{sub}</span>
-      <StatusBadge delta={delta} />
+      <StatusBadge delta={delta} t={t} />
     </article>
   );
 }
@@ -1676,7 +1844,7 @@ const CLIENTS_TARGETS = [
   { year: 2030, clients: 454000 },
 ];
 
-function ClientsChart({ data }) {
+function ClientsChart({ data, t }) {
   const W = 1100, H = 280;
   const pad = { top: 28, right: 56, bottom: 44, left: 72 };
   const iW = W - pad.left - pad.right;
@@ -1780,7 +1948,7 @@ function ClientsChart({ data }) {
           {dailyAvg != null && dailyAvg > 0 && (
             <text x={(pxMs(last.date.getTime()) + 8).toFixed(1)} y={(py(last.clients) + 18).toFixed(1)}
               fontSize="10" fill="#718096">
-              +{Math.round(dailyAvg)}/día (últ. {daysBack}d)
+              +{Math.round(dailyAvg)}/{t.perDay} ({t.lastDays} {daysBack}d)
             </text>
           )}
         </g>
@@ -1789,15 +1957,15 @@ function ClientsChart({ data }) {
       {/* Legend */}
       <g transform={`translate(${pad.left}, ${pad.top - 10})`}>
         <circle cx="6" cy="0" r="4" fill="#0F766E" />
-        <text x="14" y="4" fontSize="10" fill="#718096">Real</text>
+        <text x="14" y="4" fontSize="10" fill="#718096">{t.real}</text>
         <line x1="60" y1="0" x2="82" y2="0" stroke="#CBD5E1" strokeWidth="1.5" strokeDasharray="6 3" />
-        <text x="88" y="4" fontSize="10" fill="#A0AEC0">Estimación GVC Gaesco</text>
+        <text x="88" y="4" fontSize="10" fill="#A0AEC0">{t.gvcEstimate}</text>
       </g>
     </svg>
   );
 }
 
-function HistoryTable({ yearlyRows }) {
+function HistoryTable({ yearlyRows, t }) {
   const actuals = [...yearlyRows].filter((row) => row.year >= 2021).sort((a, b) => a.year - b.year);
   const currentYear = new Date().getFullYear();
   const actualYearSet = new Set(actuals.map((row) => row.year));
@@ -1808,12 +1976,12 @@ function HistoryTable({ yearlyRows }) {
       <table className="history-table">
         <thead>
           <tr>
-            <th>Ano</th>
-            <th>AUM fin ano</th>
-            <th>Crec. AUM</th>
-            <th>ARR estimado</th>
-            <th>Crec. ARR</th>
-            <th>Fee media</th>
+            <th>{t.year}</th>
+            <th>{t.yearEndAum}</th>
+            <th>{t.aumGrowth}</th>
+            <th>{t.estimatedArrTable}</th>
+            <th>{t.arrGrowth}</th>
+            <th>{t.averageFee}</th>
           </tr>
         </thead>
         <tbody>
@@ -1832,12 +2000,12 @@ function HistoryTable({ yearlyRows }) {
                 </td>
                 <td>
                   {euroCompact.format(row.volumeEnd)}
-                  {isCurrent && milestone ? <span className="obj-tag"> / ref. {euroCompact.format(milestone.aumTarget)}</span> : null}
+                  {isCurrent && milestone ? <span className="obj-tag"> / {t.vsReference} {euroCompact.format(milestone.aumTarget)}</span> : null}
                 </td>
                 <td className={yoyAum != null && yoyAum > 0 ? "col-positive" : ""}>{yoyAum != null ? percent.format(yoyAum) : "-"}</td>
                 <td>
                   {euroCompact.format(row.arrEnd)}
-                  {isCurrent && milestone ? <span className="obj-tag"> / ref. {euroCompact.format(milestone.arrTarget)}</span> : null}
+                  {isCurrent && milestone ? <span className="obj-tag"> / {t.vsReference} {euroCompact.format(milestone.arrTarget)}</span> : null}
                 </td>
                 <td className={yoyArr != null && yoyArr > 0 ? "col-positive" : ""}>{yoyArr != null ? percent.format(yoyArr) : "-"}</td>
                 <td>{row.feePctEnd ? percent.format(row.feePctEnd) : "-"}</td>
@@ -1847,7 +2015,7 @@ function HistoryTable({ yearlyRows }) {
 
           {futureTargets.length > 0 && (
             <tr className="col-divider">
-              <td colSpan={6}>Referencia propia - 30 M EUR ARR en 2030</td>
+              <td colSpan={6}>{t.ownReferenceRow}</td>
             </tr>
           )}
 
@@ -1867,7 +2035,7 @@ function HistoryTable({ yearlyRows }) {
   );
 }
 
-function InfoTooltip({ children }) {
+function InfoTooltip({ children, label = "More information" }) {
   const [visible, setVisible] = useState(false);
   return (
     <span className="info-tooltip-wrap">
@@ -1875,14 +2043,14 @@ function InfoTooltip({ children }) {
         className="info-tooltip-btn"
         onMouseEnter={() => setVisible(true)}
         onMouseLeave={() => setVisible(false)}
-        aria-label="Mas informacion"
+        aria-label={label}
       >?</button>
       {visible && <div className="info-tooltip-box">{children}</div>}
     </span>
   );
 }
 
-function PeriodComparisonBars({ label, bars }) {
+function PeriodComparisonBars({ label, bars, t }) {
   if (!bars?.length) return null;
 
   const W = 480;
@@ -1904,26 +2072,26 @@ function PeriodComparisonBars({ label, bars }) {
       <div className="comparison-header">
         <div>
           <h2 className="comparison-title">{label}</h2>
-          <p className="comparison-sub">Aportaciones netas · ultimos 4 años + {new Date().getFullYear()} proyectado</p>
+          <p className="comparison-sub">{t.periodComparisonSub} {new Date().getFullYear()} {t.projected}</p>
         </div>
         <InfoTooltip>
           {isMonthly ? (
             <>
-              <p>Cada barra muestra las <strong>aportaciones netas brutas</strong> del mismo mes en cada uno de los ultimos 4 años completos.</p>
-              <p style={{ marginTop: 8 }}>La barra de <strong>{new Date().getFullYear()}p</strong> es una proyeccion al mes completo calculada asi:</p>
+              <p>{t.monthBarsInfo}</p>
+              <p style={{ marginTop: 8 }}>{t.projectedMonthInfo}</p>
               <p style={{ marginTop: 4, fontFamily: "monospace", fontSize: "0.82em", background: "rgba(255,255,255,0.08)", padding: "4px 8px", borderRadius: 4 }}>
-                aportaciones acumuladas / dias transcurridos × dias totales del mes
+                {t.monthlyFormula}
               </p>
-              <p style={{ marginTop: 8, opacity: 0.7 }}>Util para ver si el ritmo de este mes es alto o bajo comparado con años anteriores.</p>
+              <p style={{ marginTop: 8, opacity: 0.7 }}>{t.monthlyUsefulness}</p>
             </>
           ) : (
             <>
-              <p>Cada barra muestra las <strong>aportaciones netas brutas</strong> del mismo trimestre en cada uno de los ultimos 4 años completos.</p>
-              <p style={{ marginTop: 8 }}>La barra de <strong>{new Date().getFullYear()}p</strong> es una proyeccion al trimestre completo calculada asi:</p>
+              <p>{t.quarterBarsInfo}</p>
+              <p style={{ marginTop: 8 }}>{t.projectedQuarterInfo}</p>
               <p style={{ marginTop: 4, fontFamily: "monospace", fontSize: "0.82em", background: "rgba(255,255,255,0.08)", padding: "4px 8px", borderRadius: 4 }}>
-                aportaciones acumuladas / dias transcurridos × dias totales del trimestre
+                {t.quarterlyFormula}
               </p>
-              <p style={{ marginTop: 8, opacity: 0.7 }}>Util para ver si el ritmo de este trimestre es alto o bajo comparado con años anteriores.</p>
+              <p style={{ marginTop: 8, opacity: 0.7 }}>{t.quarterlyUsefulness}</p>
             </>
           )}
         </InfoTooltip>
@@ -2049,14 +2217,15 @@ export default function App() {
             <DashboardIntro today={today} lastDate={lastDate} lang={lang} t={t} />
 
         <section>
-          <p className="section-eyebrow">{t.summaryVsReference} · {fmtDate(today)}</p>
+          <p className="section-eyebrow">{t.summaryVsReference} · {fmtDate(today, lang)}</p>
           <div className="status-grid">
             <MetricCard
               label={t.latestAum}
               value={euroCompact.format(currentAum)}
               sub={`${t.todayReference}: ${euroCompact.format(targetAumNow)} · ${t.yearEndReference}: ${euroCompact.format(targetYearEnd)}`}
               delta={aumDeltaPct}
-              info={<p>Activos bajo gestión a la fecha del último dato público. Se compara con una curva de referencia propia: CAGR ~22% desde {euroCompact.format(COMPANY_TARGET.aumStart)} a fin de 2025 hasta {euroCompact.format(COMPANY_TARGET.aumEnd)} en 2030. El badge indica la posición frente a esa referencia.</p>}
+              info={<p>{t.latestPublicAumInfo} {euroCompact.format(COMPANY_TARGET.aumStart)} {t.latestPublicAumInfoMid} {euroCompact.format(COMPANY_TARGET.aumEnd)} {t.latestPublicAumInfoEnd}</p>}
+              t={t}
             />
 
             <MetricCard
@@ -2064,7 +2233,8 @@ export default function App() {
               value={euroCompact.format(currentArr)}
               sub={`${t.todayReference}: ${euroCompact.format(targetArrNow)} · ${t.communicatedTarget2030}: ${euroCompact.format(COMPANY_TARGET.arrEnd)}`}
               delta={arrDeltaPct}
-              info={<p>Ingresos anuales recurrentes estimados: AUM actual × comisión media anual. Es el ritmo de ingresos si el AUM se mantuviera constante un año entero. La meta de 30 M EUR ARR en 2030 fue comunicada por Indexa y está recogida en el informe de GVC Gaesco.</p>}
+              info={<p>{t.estimatedArrInfo}</p>}
+              t={t}
             />
 
             <MetricCard
@@ -2072,7 +2242,8 @@ export default function App() {
               value={euroCompact.format(projectedYeAum)}
               sub={`${t.ownEstimate} · ${euroCompact.format(avgMonthlyInflow)}/${t.netPerMonth} · ${t.reference}: ${euroCompact.format(targetYearEnd)}`}
               delta={paceDeltaPct}
-              info={<><p>Estimación propia del AUM a 31 de diciembre calculada como:</p><p style={{marginTop:6, fontFamily:"monospace", fontSize:"0.82em", background:"rgba(255,255,255,0.08)", padding:"4px 8px", borderRadius:4}}>AUM × (1 + 5%/12)^meses + aportaciones_medias × meses</p><p style={{marginTop:6}}>Se asume un 5% anual de rentabilidad de mercado y se extrapola el ritmo de aportaciones netas de los últimos 3 meses.</p></>}
+              info={<><p>{t.yearEndAumInfoTitle}</p><p style={{marginTop:6, fontFamily:"monospace", fontSize:"0.82em", background:"rgba(255,255,255,0.08)", padding:"4px 8px", borderRadius:4}}>{t.yearEndAumFormula}</p><p style={{marginTop:6}}>{t.yearEndAumInfoEnd}</p></>}
+              t={t}
             />
           </div>
         </section>
@@ -2082,10 +2253,10 @@ export default function App() {
           <div className="chart-top">
             <div>
               <div className="chart-title-row">
-                <h2>YoY diario de ARR</h2>
-                <InfoTooltip><p>Crecimiento interanual del ARR (Ingresos Anuales Recurrentes) dia a dia desde 2022. Para cada fecha se compara el ARR con el valor del mismo dia hace 12 meses, tomando el dato mas reciente disponible si no existe exactamente. Replica la logica de BUSCARX con coincidencia aproximada que se usa habitualmente en Excel para seguimiento diario.</p></InfoTooltip>
+                <h2>{t.arrYoyTitle}</h2>
+                <InfoTooltip label={t.moreInformation}><p>{t.arrYoyInfo}</p></InfoTooltip>
               </div>
-              <p>ARR actual / ARR hace 12 meses − 1 · datos diarios desde 2022</p>
+              <p>{t.arrYoySub}</p>
             </div>
           </div>
           <ArrYoYChart data={arrYoySeries} />
@@ -2095,10 +2266,10 @@ export default function App() {
           <div className="chart-top">
             <div>
               <div className="chart-title-row">
-                <h2>ARR indexado a inicio de año · comparativa anual</h2>
-                <InfoTooltip><p>Cada linea parte de 0% el 1 de enero y muestra cuanto creció el ARR a lo largo de ese año. Permite comparar la velocidad de crecimiento dentro del año independientemente del nivel absoluto: si 2026 crece más rápido que 2025 en el mismo periodo del año, es una señal de aceleración real y no de efecto base.</p></InfoTooltip>
+                <h2>{t.arrIndexedTitle}</h2>
+                <InfoTooltip label={t.moreInformation}><p>{t.arrIndexedInfo}</p></InfoTooltip>
               </div>
-              <p>ARR relativo a su valor a 1 de enero de cada año · datos diarios desde 2019</p>
+              <p>{t.arrIndexedSub}</p>
             </div>
           </div>
           <ArrYearlyIndexChart data={arrYearlyIndex} />
@@ -2108,14 +2279,14 @@ export default function App() {
           <div className="chart-top">
             <div>
               <div className="chart-title-row">
-                <h2>AUM real vs curva de referencia 2030</h2>
-                <InfoTooltip><p>Evolución mensual del AUM real (línea verde continua) junto con una curva de referencia propia (línea gris punteada). La curva se ancla en {euroCompact.format(COMPANY_TARGET.aumStart)} a fin de 2025 y crece a CAGR ~22% hasta {euroCompact.format(COMPANY_TARGET.aumEnd)} en 2030, el AUM implícito para alcanzar 30 M EUR ARR con una comisión media del 0,25%.</p></InfoTooltip>
+                <h2>{t.aumReferenceTitle}</h2>
+                <InfoTooltip label={t.moreInformation}><p>{t.aumReferenceInfo}</p></InfoTooltip>
               </div>
-              <p>Curva de referencia propia: CAGR ~22% desde {euroCompact.format(COMPANY_TARGET.aumStart)} (fin 2025) hasta {euroCompact.format(COMPANY_TARGET.aumEnd)} (2030)</p>
+              <p>{t.aumReferenceSub} {euroCompact.format(COMPANY_TARGET.aumStart)} ({t.yearEnd2025}) {t.latestPublicAumInfoMid} {euroCompact.format(COMPANY_TARGET.aumEnd)} (2030)</p>
             </div>
             <div className="chart-legend">
-              <span><i className="leg-dot real" />Real mensual</span>
-              <span><i className="leg-dash" />Referencia propia</span>
+              <span><i className="leg-dot real" />{t.realMonthly}</span>
+              <span><i className="leg-dash" />{t.ownReferenceLegend}</span>
             </div>
           </div>
           <AumChart data={chartData} />
@@ -2127,10 +2298,10 @@ export default function App() {
             <div className="chart-top">
               <div>
                 <div className="chart-title-row">
-                  <h2>Aportaciones netas anuales</h2>
-                  <InfoTooltip><p>Suma de aportaciones netas de cada ano. La barra del ano en curso muestra el acumulado hasta el ultimo dato; la extension transparente es la proyeccion al cierre del ano al ritmo actual. * = dato parcial.</p></InfoTooltip>
+                  <h2>{t.annualNetInflowsTitle}</h2>
+                  <InfoTooltip label={t.moreInformation}><p>{t.annualNetInflowsInfo}</p></InfoTooltip>
                 </div>
-                <p>Vision agregada por ano · * proyeccion al cierre del ano al ritmo actual</p>
+                <p>{t.annualNetInflowsSub}</p>
               </div>
             </div>
             <AnnualInflowsChart data={annualInflows} projection={annualProjection} />
@@ -2139,10 +2310,10 @@ export default function App() {
             <div className="chart-top">
               <div>
                 <div className="chart-title-row">
-                  <h2>Aportaciones netas mensuales</h2>
-                  <InfoTooltip><p>Entradas menos salidas de dinero cada mes desde 2016. La linea amarilla es la media movil de 12 meses. La extension transparente en el ultimo mes es la proyeccion al cierre del mes al ritmo actual.</p></InfoTooltip>
+                  <h2>{t.monthlyNetInflowsTitle}</h2>
+                  <InfoTooltip label={t.moreInformation}><p>{t.monthlyNetInflowsInfo}</p></InfoTooltip>
                 </div>
-                <p>Barras azules: mes completo · extension translucida: proyeccion fin de mes · linea: media movil 12m</p>
+                <p>{t.monthlyNetInflowsSub}</p>
               </div>
             </div>
             <MonthlyInflowsChart data={monthlyInflowsData} projection={monthlyProjection} />
@@ -2155,10 +2326,10 @@ export default function App() {
             <div className="chart-top">
               <div>
                 <div className="chart-title-row">
-                  <h2>YTD — comparativa entre años</h2>
-                  <InfoTooltip><p>Barra solida: aportaciones acumuladas desde el 1 de enero hasta el mismo dia del ano que el ultimo dato disponible (comparable entre años). Barra clara detras: total del ano completo (o proyeccion para el ano actual). El % sobre cada barra es el crecimiento vs el mismo periodo del ano anterior.</p></InfoTooltip>
+                  <h2>{t.ytdComparisonTitle}</h2>
+                  <InfoTooltip label={t.moreInformation}><p>{t.ytdComparisonInfo}</p></InfoTooltip>
                 </div>
-                <p>Solido: 1 ene → {lastDate ? `${lastDate.getDate()} ${MONTH_LABELS[lastDate.getMonth()]}` : "hoy"} · claro: ano completo / proyectado · % = YoY del mismo periodo</p>
+                <p>{t.ytdComparisonSubPrefix} {lastDate ? `${lastDate.getDate()} ${MONTH_LABELS[lastDate.getMonth()]}` : t.today} · {t.ytdComparisonSubSuffix}</p>
               </div>
             </div>
             <StackedComparisonBarChart data={ytdComparison} />
@@ -2167,10 +2338,10 @@ export default function App() {
             <div className="chart-top">
               <div>
                 <div className="chart-title-row">
-                  <h2>MTD — comparativa entre años</h2>
-                  <InfoTooltip><p>Barra solida: aportaciones del 1 al dia actual del mes, en cada ano. Barra clara: total del mes completo (o proyeccion para el mes actual). El % muestra el crecimiento vs el mismo tramo del ano anterior.</p></InfoTooltip>
+                  <h2>{t.mtdComparisonTitle}</h2>
+                  <InfoTooltip label={t.moreInformation}><p>{t.mtdComparisonInfo}</p></InfoTooltip>
                 </div>
-                <p>Solido: 1–{lastDate?.getDate() ?? "?"} {lastDate ? MONTH_LABELS[lastDate.getMonth()] : "—"} · claro: mes completo / proyectado · % = YoY del mismo periodo</p>
+                <p>{t.mtdComparisonSubPrefix}{lastDate?.getDate() ?? "?"} {lastDate ? MONTH_LABELS[lastDate.getMonth()] : "-"} · {t.mtdComparisonSubSuffix}</p>
               </div>
             </div>
             <StackedComparisonBarChart data={mtdComparison} />
@@ -2184,15 +2355,15 @@ export default function App() {
             <div className="chart-top">
               <div>
                 <div className="chart-title-row">
-                  <h2>Estacionalidad mensual de aportaciones</h2>
-                  <InfoTooltip><p>Para cada mes, muestra las aportaciones netas como porcentaje de las aportaciones acumuladas a 1 de enero del mismo ano. Normalizar por la base de enero permite <strong>comparar patrones estacionales entre años de distinto tamano</strong>. Un valor alto indica un mes de captacion fuerte respecto al ritmo del ano.</p></InfoTooltip>
+                  <h2>{t.monthlySeasonalityTitle}</h2>
+                  <InfoTooltip label={t.moreInformation}><p>{t.monthlySeasonalityInfo}</p></InfoTooltip>
                 </div>
-                <p>Aportaciones mensuales / aportaciones acumuladas a 1 de enero (%) · ultimos 5 años</p>
+                <p>{t.monthlySeasonalitySub}</p>
               </div>
             </div>
             <SeasonalityChart data={seasonalityMonthly} />
             <p className="chart-note">
-              Grafico de seguimiento para ver si cada mes viene por encima o por debajo del patron historico. El ano en curso puede ir parcial.
+              {t.monthlySeasonalityNote}
             </p>
           </article>
 
@@ -2200,15 +2371,15 @@ export default function App() {
             <div className="chart-top">
               <div>
                 <div className="chart-title-row">
-                  <h2>Estacionalidad trimestral de aportaciones</h2>
-                  <InfoTooltip><p>La misma metrica que la estacionalidad mensual pero agregada por trimestre. Suaviza el ruido de meses individuales y hace mas visible si hay trimestres sistematicamente fuertes o debiles a lo largo del ano.</p></InfoTooltip>
+                  <h2>{t.quarterlySeasonalityTitle}</h2>
+                  <InfoTooltip label={t.moreInformation}><p>{t.quarterlySeasonalityInfo}</p></InfoTooltip>
                 </div>
-                <p>Misma metrica agregada por trimestre para suavizar ruido mensual y ver mejor la pauta anual</p>
+                <p>{t.quarterlySeasonalitySub}</p>
               </div>
             </div>
             <SeasonalityChart data={seasonalityQuarterly} />
             <p className="chart-note">
-              Cada punto recoge las aportaciones netas del trimestre sobre la base de aportaciones acumuladas al 1 de enero del mismo ano.
+              {t.quarterlySeasonalityNote}
             </p>
           </article>
         </section>
@@ -2218,17 +2389,17 @@ export default function App() {
             <div className="chart-top">
               <div>
                 <div className="chart-title-row">
-                  <h2>Evolución de clientes</h2>
-                  <InfoTooltip><p>Número de clientes publicado en la página de testimonios de Indexa Capital, capturado automáticamente varias veces al día. La línea gris muestra la estimación de GVC Gaesco hasta 2030, no una guía oficial de Indexa. El ritmo diario se calcula como la media de los últimos 30 días.</p></InfoTooltip>
+                  <h2>{t.clientsTitle}</h2>
+                  <InfoTooltip label={t.moreInformation}><p>{t.clientsInfo}</p></InfoTooltip>
                 </div>
                 <p>
-                  Clientes actuales: <strong>{dataset.clientsHistory.at(-1).clients.toLocaleString("es-ES")}</strong>
+                  {t.currentClients}: <strong>{dataset.clientsHistory.at(-1).clients.toLocaleString(lang === "en" ? "en-GB" : "es-ES")}</strong>
                   {" · "}
-                  Datos desde {dataset.clientsHistory[0].date.toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric" })}
+                  {t.dataSince} {dataset.clientsHistory[0].date.toLocaleDateString(lang === "en" ? "en-GB" : "es-ES", { day: "numeric", month: "short", year: "numeric" })}
                 </p>
               </div>
             </div>
-            <ClientsChart data={dataset.clientsHistory} />
+            <ClientsChart data={dataset.clientsHistory} t={t} />
           </section>
         )}
 
@@ -2237,34 +2408,34 @@ export default function App() {
             <div className="chart-top">
               <div>
                 <div className="chart-title-row">
-                  <h2>Rentabilidad de la cartera (TWR)</h2>
-                  <InfoTooltip><p>Time-Weighted Return diario con convencion fin-de-dia: factor = (V_fin − CF_dia) / V_ini. Las aportaciones del dia no participan en la rentabilidad de ese dia (se asume compra al cierre). Aisla la rentabilidad pura de la cartera eliminando el efecto del tamano y timing de las aportaciones. Los factores diarios se encadenan por ano y mes.</p></InfoTooltip>
+                  <h2>{t.portfolioReturnTitle}</h2>
+                  <InfoTooltip label={t.moreInformation}><p>{t.portfolioReturnInfo}</p></InfoTooltip>
                 </div>
                 <p>
-                  TWR anualizado: <strong>{percent.format(twrData.twrAnnualized)}</strong>
+                  {t.annualizedTwr}: <strong>{percent.format(twrData.twrAnnualized)}</strong>
                   {" · "}
-                  {new Date().getFullYear()}: <strong>{percent.format(twrData.currentYearReturn ?? 0)}</strong> (parcial)
+                  {new Date().getFullYear()}: <strong>{percent.format(twrData.currentYearReturn ?? 0)}</strong> ({t.partial})
                   {" · "}
-                  Acumulado: <strong>+{(twrData.twrAccumulated * 100).toFixed(0)}%</strong> en {twrData.yearsSpan.toFixed(1)} años
+                  {t.accumulated}: <strong>+{(twrData.twrAccumulated * 100).toFixed(0)}%</strong> {lang === "en" ? "in" : "en"} {twrData.yearsSpan.toFixed(1)} {t.years}
                 </p>
               </div>
             </div>
             <ReturnBarsChart annualReturns={twrData.annualReturns.filter((r) => r.year >= 2021)} />
-            <p className="chart-note" style={{ marginTop: 16, marginBottom: 4 }}>Desglose mensual — verde: rentabilidad positiva · rojo: negativa · intensidad proporcional a la magnitud</p>
+            <p className="chart-note" style={{ marginTop: 16, marginBottom: 4 }}>{t.monthlyBreakdownNote}</p>
             <ReturnMonthlyHeatmap monthlyReturns={twrData.monthlyReturns.filter((r) => r.year >= 2021)} />
-            <p className="chart-note">* Ano en curso, datos parciales hasta el ultimo dato disponible.</p>
+            <p className="chart-note">{t.currentYearPartialNote}</p>
           </section>
         )}
 
         <section className="history-section">
           <div className="chart-title-row">
-            <h2>Histórico y referencias 2030</h2>
-            <InfoTooltip><p>Datos reales auditados del AUM y ARR a fin de cada año. Las filas en cursiva son <strong>referencias propias</strong> de la curva 2030, no datos reales ni guía oficial. La fee media futura se asume constante al {percent.format(COMPANY_TARGET.feeRate)} sobre AUM.</p></InfoTooltip>
+            <h2>{t.historyTitle}</h2>
+            <InfoTooltip label={t.moreInformation}><p>{t.historyInfo} {percent.format(COMPANY_TARGET.feeRate)}.</p></InfoTooltip>
           </div>
           <p className="section-sub">
-            Datos reales auditados + curva de referencia hasta 2030 · Fee media constante al {percent.format(COMPANY_TARGET.feeRate)} sobre AUM
+            {t.historySub} {percent.format(COMPANY_TARGET.feeRate)} {lang === "en" ? "over AUM" : "sobre AUM"}
           </p>
-          <HistoryTable yearlyRows={dataset.yearlyRows} />
+          <HistoryTable yearlyRows={dataset.yearlyRows} t={t} />
         </section>
 
         <SourceMethodology t={t} />

@@ -1822,20 +1822,8 @@ export default function App() {
       {showDisclaimer && <DisclaimerModal onClose={closeDisclaimer} />}
       <header className="app-header">
         <div className="header-inner">
-          <div>
-            <BrandSignature productName="Indexa Tracker" />
-            <h1>Indexa Capital Tracker</h1>
-            <p className="header-sub">
-              Seguimiento independiente. Meta 2030 comunicada por la compañía: {euroCompact.format(COMPANY_TARGET.arrEnd)} ARR · AUM implícito: {euroCompact.format(COMPANY_TARGET.aumEnd)} con fee media del {percent.format(COMPANY_TARGET.feeRate)}
-            </p>
-            <HeaderNav activePage={isThesisPage ? "tesis" : "dashboard"} />
-          </div>
-          <div className="header-meta">
-            <span>Último dato público</span>
-            <strong>{fmtDate(lastDate)}</strong>
-            <span>Cálculos actualizados</span>
-            <strong>{fmtDate(today)}</strong>
-          </div>
+          <BrandSignature productName="Indexa Tracker" />
+          <HeaderNav activePage={isThesisPage ? "tesis" : "dashboard"} />
         </div>
       </header>
 

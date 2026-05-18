@@ -12,6 +12,141 @@ import {
 const DISCLAIMER_KEY = "indexa-tracker-disclaimer-v1";
 const BRAND_HOME_URL = "https://apardo-flowgy.github.io/personal-portfolio/";
 
+const I18N = {
+  es: {
+    importantNotice: "Aviso importante",
+    disclaimer1: (
+      <>
+        Esta web es un <strong>proyecto independiente creado por inversores</strong> de
+        Indexa Capital para monitorizar el crecimiento de la compañía y hacer
+        seguimiento de sus métricas públicas.
+      </>
+    ),
+    disclaimer2: (
+      <>
+        No tiene ninguna relación ni afiliación con <strong>Indexa Capital</strong>.
+        Los datos provienen de fuentes públicas y pueden contener inexactitudes.
+        Esta herramienta no constituye asesoramiento financiero.
+      </>
+    ),
+    disclaimer3:
+      "La web combina datos públicos, una meta 2030 comunicada por la compañía, estimaciones de GVC Gaesco y cálculos propios.",
+    understood: "Entendido",
+    dashboard: "Dashboard",
+    thesis: "Tesis",
+    investmentThesis: "Tesis de inversión",
+    officialWebsite: "Web oficial",
+    publicData: "Datos públicos",
+    investorDocs: "Documentos inversores",
+    legalNotice: "Aviso legal",
+    navLabel: "Navegación principal",
+    langLabel: "Idioma",
+    contextLabel: "Contexto del dashboard",
+    independentDashboard: "Dashboard independiente, no afiliado a Indexa Capital.",
+    contextText:
+      "Datos públicos, meta 2030 comunicada por la compañía, estimaciones de GVC Gaesco y cálculos propios.",
+    lastPublicData: "Último dato público",
+    calculationsUpdated: "Cálculos actualizados",
+    methodologyTitle: "Fuentes y metodología",
+    realDataTitle: "Qué es dato real",
+    realDataText:
+      "AUM, ARR estimado, aportaciones y clientes se construyen a partir de datos públicos de Indexa Capital y sus documentos para inversores.",
+    ownReferenceTitle: "Qué es referencia propia",
+    ownReferenceText:
+      "La curva 2030 toma como meta 30 M EUR de ARR y deriva un AUM implícito de 12.000 M EUR si la fee media se mantiene en el 0,25%.",
+    externalEstimateTitle: "Qué es estimación externa",
+    externalEstimateText:
+      "Las cifras de clientes y AUM de 2030 atribuidas al informe son el escenario de GVC Gaesco, no una guía oficial de Indexa ni una previsión propia de esta web.",
+    calculationTitle: "Cómo se calcula",
+    calculationText:
+      "ARR = AUM por fee media anual. La proyección de cierre de año extrapola las aportaciones netas recientes y asume una rentabilidad de mercado del 5% anual.",
+    thesisTeaserLabel: "Tesis de inversión",
+    thesisTeaserTitle: "La lectura estratégica detrás del tracker",
+    thesisTeaserText: "Hipótesis, ventajas, escenario GVC, riesgos e invalidadores.",
+    seeThesis: "Ver tesis",
+    loadingData: "Cargando datos...",
+    loadingError: "Error al cargar los datos",
+    summaryVsReference: "Resumen vs referencia 2030",
+    latestAum: "AUM último dato público",
+    estimatedArr: "ARR estimado",
+    estimatedYearEndAum: "AUM fin de año estimado",
+    todayReference: "Referencia hoy",
+    yearEndReference: "Referencia cierre de año",
+    communicatedTarget2030: "Meta 2030 comunicada",
+    ownEstimate: "Estimación propia",
+    netPerMonth: "mes neto",
+    reference: "referencia",
+  },
+  en: {
+    importantNotice: "Important notice",
+    disclaimer1: (
+      <>
+        This website is an <strong>independent project created by investors</strong> in
+        Indexa Capital to monitor the company's growth and track its public metrics.
+      </>
+    ),
+    disclaimer2: (
+      <>
+        It has no relationship or affiliation with <strong>Indexa Capital</strong>.
+        The data comes from public sources and may contain inaccuracies. This tool
+        does not constitute financial advice.
+      </>
+    ),
+    disclaimer3:
+      "The site combines public data, a 2030 target communicated by the company, GVC Gaesco estimates and proprietary calculations.",
+    understood: "Understood",
+    dashboard: "Dashboard",
+    thesis: "Thesis",
+    investmentThesis: "Investment thesis",
+    officialWebsite: "Official website",
+    publicData: "Public data",
+    investorDocs: "Investor documents",
+    legalNotice: "Legal notice",
+    navLabel: "Main navigation",
+    langLabel: "Language",
+    contextLabel: "Dashboard context",
+    independentDashboard: "Independent dashboard, not affiliated with Indexa Capital.",
+    contextText:
+      "Public data, the 2030 target communicated by the company, GVC Gaesco estimates and proprietary calculations.",
+    lastPublicData: "Latest public data",
+    calculationsUpdated: "Calculations updated",
+    methodologyTitle: "Sources and methodology",
+    realDataTitle: "What is actual data",
+    realDataText:
+      "AUM, estimated ARR, net inflows and clients are built from Indexa Capital's public data and investor documents.",
+    ownReferenceTitle: "What is a proprietary reference",
+    ownReferenceText:
+      "The 2030 curve uses EUR 30m ARR as the target and derives an implied EUR 12bn AUM if the average fee remains at 0.25%.",
+    externalEstimateTitle: "What is an external estimate",
+    externalEstimateText:
+      "The 2030 client and AUM figures attributed to the report are GVC Gaesco's scenario, not official Indexa guidance or this website's own forecast.",
+    calculationTitle: "How it is calculated",
+    calculationText:
+      "ARR = AUM multiplied by the annual average fee. The year-end projection extrapolates recent net inflows and assumes a 5% annual market return.",
+    thesisTeaserLabel: "Investment thesis",
+    thesisTeaserTitle: "The strategic view behind the tracker",
+    thesisTeaserText: "Assumptions, advantages, GVC scenario, risks and invalidation points.",
+    seeThesis: "Read thesis",
+    loadingData: "Loading data...",
+    loadingError: "Error loading data",
+    summaryVsReference: "Summary vs 2030 reference",
+    latestAum: "Latest public AUM data",
+    estimatedArr: "Estimated ARR",
+    estimatedYearEndAum: "Estimated year-end AUM",
+    todayReference: "Reference today",
+    yearEndReference: "Year-end reference",
+    communicatedTarget2030: "Communicated 2030 target",
+    ownEstimate: "Own estimate",
+    netPerMonth: "net per month",
+    reference: "reference",
+  },
+};
+
+function getLocalizedPath(lang, page) {
+  const prefix = lang === "en" ? "/en" : "";
+  return page === "tesis" ? `#${prefix}/tesis` : `#${prefix}/`;
+}
+
 function BrandMark() {
   return (
     <svg className="brand-mark" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
@@ -51,34 +186,29 @@ function BrandSignature({ productName }) {
   );
 }
 
-function DisclaimerModal({ onClose }) {
+function DisclaimerModal({ onClose, t }) {
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal-box" onClick={(e) => e.stopPropagation()}>
-        <h2 className="modal-title">Aviso importante</h2>
+        <h2 className="modal-title">{t.importantNotice}</h2>
         <p className="modal-body">
-          Esta web es un <strong>proyecto independiente creado por inversores</strong> de
-          Indexa Capital para monitorizar el crecimiento de la compañía y hacer
-          seguimiento de sus métricas públicas.
+          {t.disclaimer1}
         </p>
         <p className="modal-body">
-          No tiene ninguna relación ni afiliación con <strong>Indexa Capital</strong>.
-          Los datos provienen de fuentes públicas y pueden contener inexactitudes.
-          Esta herramienta no constituye asesoramiento financiero.
+          {t.disclaimer2}
         </p>
         <p className="modal-body">
-          La web combina datos públicos, una meta 2030 comunicada por la compañía,
-          estimaciones de GVC Gaesco y cálculos propios.
+          {t.disclaimer3}
         </p>
         <button className="modal-btn" onClick={onClose}>
-          Entendido
+          {t.understood}
         </button>
       </div>
     </div>
   );
 }
 
-function Footer({ onOpenDisclaimer }) {
+function Footer({ onOpenDisclaimer, lang, t }) {
   return (
     <footer className="app-footer">
       <div className="footer-inner">
@@ -87,90 +217,95 @@ function Footer({ onOpenDisclaimer }) {
             <BrandMark />
             Alex Finance Lab
           </a>
-          <a href="#/">
-            Dashboard
+          <a href={getLocalizedPath(lang, "dashboard")}>
+            {t.dashboard}
           </a>
-          <a href="#/tesis">
-            Tesis de inversión
+          <a href={getLocalizedPath(lang, "tesis")}>
+            {t.investmentThesis}
           </a>
           <a href="https://indexacapital.com" target="_blank" rel="noopener noreferrer">
-            Web oficial
+            {t.officialWebsite}
           </a>
           <a href="https://indexacapital.com/es/esp/stats" target="_blank" rel="noopener noreferrer">
-            Datos públicos
+            {t.publicData}
           </a>
           <a href="https://group.indexacapital.com/en/documents" target="_blank" rel="noopener noreferrer">
-            Documentos inversores
+            {t.investorDocs}
           </a>
         </div>
         <button className="footer-disclaimer-btn" onClick={onOpenDisclaimer}>
-          Aviso legal
+          {t.legalNotice}
         </button>
       </div>
     </footer>
   );
 }
 
-function HeaderNav({ activePage }) {
+function HeaderNav({ activePage, lang, t }) {
   return (
-    <nav className="header-nav" aria-label="Navegación principal">
-      <a className={activePage === "dashboard" ? "active" : ""} href="#/">Dashboard</a>
-      <a className={activePage === "tesis" ? "active" : ""} href="#/tesis">Tesis</a>
+    <nav className="header-nav" aria-label={t.navLabel}>
+      <a className={activePage === "dashboard" ? "active" : ""} href={getLocalizedPath(lang, "dashboard")}>{t.dashboard}</a>
+      <a className={activePage === "tesis" ? "active" : ""} href={getLocalizedPath(lang, "tesis")}>{t.thesis}</a>
     </nav>
   );
 }
 
-function ContextBanner({ today, lastDate }) {
+function LanguageSwitch({ activePage, lang, t }) {
   return (
-    <div className="context-band" aria-label="Contexto del dashboard">
+    <div className="language-switch" aria-label={t.langLabel}>
+      <span>{t.langLabel}</span>
+      <a className={lang === "es" ? "active" : ""} href={getLocalizedPath("es", activePage)}>ES</a>
+      <a className={lang === "en" ? "active" : ""} href={getLocalizedPath("en", activePage)}>EN</a>
+    </div>
+  );
+}
+
+function ContextBanner({ today, lastDate, t }) {
+  return (
+    <div className="context-band" aria-label={t.contextLabel}>
       <div>
-        <strong>Dashboard independiente, no afiliado a Indexa Capital.</strong>
+        <strong>{t.independentDashboard}</strong>
         <p>
-          Datos públicos, meta 2030 comunicada por la compañía, estimaciones de GVC
-          Gaesco y cálculos propios.
+          {t.contextText}
         </p>
       </div>
       <div className="context-dates">
-        <span>Último dato público: <strong>{fmtDate(lastDate)}</strong></span>
-        <span>Cálculos actualizados: <strong>{fmtDate(today)}</strong></span>
+        <span>{t.lastPublicData}: <strong>{fmtDate(lastDate)}</strong></span>
+        <span>{t.calculationsUpdated}: <strong>{fmtDate(today)}</strong></span>
       </div>
     </div>
   );
 }
 
-function SourceMethodology() {
+function SourceMethodology({ t }) {
   return (
     <section className="methodology-section">
       <div className="chart-title-row">
-        <h2>Fuentes y metodología</h2>
+        <h2>{t.methodologyTitle}</h2>
       </div>
       <div className="methodology-grid">
         <div>
-          <h3>Qué es dato real</h3>
+          <h3>{t.realDataTitle}</h3>
           <p>
-            AUM, ARR estimado, aportaciones y clientes se construyen a partir de datos
-            públicos de Indexa Capital y sus documentos para inversores.
+            {t.realDataText}
           </p>
         </div>
         <div>
-          <h3>Qué es referencia propia</h3>
+          <h3>{t.ownReferenceTitle}</h3>
           <p>
-            La curva 2030 toma como meta 30 M EUR de ARR y deriva un AUM implícito de
-            12.000 M EUR si la fee media se mantiene en el 0,25%.
+            {t.ownReferenceText}
           </p>
         </div>
         <div>
-          <h3>Qué es estimación externa</h3>
+          <h3>{t.externalEstimateTitle}</h3>
           <p>
-            Las cifras de clientes y AUM de 2030 atribuidas al informe son el escenario de GVC
-            Gaesco, no una guía oficial de Indexa ni una previsión propia de esta web.
+            {t.externalEstimateText}
           </p>
         </div>
         <div>
-          <h3>Cómo se calcula</h3>
+          <h3>{t.calculationTitle}</h3>
           <p>
-            ARR = AUM por fee media anual. La proyección de cierre de año extrapola las
-            aportaciones netas recientes y asume una rentabilidad de mercado del 5% anual.
+            {t.calculationText}
           </p>
         </div>
       </div>
@@ -178,81 +313,122 @@ function SourceMethodology() {
   );
 }
 
-function ThesisTeaser() {
+function ThesisTeaser({ lang, t }) {
   return (
-    <aside className="thesis-teaser" aria-label="Acceso a tesis de inversión">
+    <aside className="thesis-teaser" aria-label={t.investmentThesis}>
       <div>
-        <span className="section-eyebrow">Tesis de inversión</span>
-        <h2>La lectura estratégica detrás del tracker</h2>
+        <span className="section-eyebrow">{t.thesisTeaserLabel}</span>
+        <h2>{t.thesisTeaserTitle}</h2>
         <p>
-          Hipótesis, ventajas, escenario GVC, riesgos e invalidadores.
+          {t.thesisTeaserText}
         </p>
       </div>
-      <a className="thesis-teaser-link" href="#/tesis">Ver tesis</a>
+      <a className="thesis-teaser-link" href={getLocalizedPath(lang, "tesis")}>{t.seeThesis}</a>
     </aside>
   );
 }
 
-function DashboardIntro({ today, lastDate }) {
+function DashboardIntro({ today, lastDate, lang, t }) {
   return (
     <section className="dashboard-intro">
-      <ContextBanner today={today} lastDate={lastDate} />
-      <ThesisTeaser />
+      <ContextBanner today={today} lastDate={lastDate} t={t} />
+      <ThesisTeaser lang={lang} t={t} />
     </section>
   );
 }
 
-function InvestmentThesisPage({ today, lastDate }) {
-  const thesisMetrics = [
-    { label: "AUM 2025", value: "4.403 M EUR", note: "cierre 2025 auditado" },
-    { label: "Clientes 2025", value: "134 mil", note: "base de la curva 2030" },
-    { label: "Beneficio neto 2025", value: "2,4 M EUR", note: "resultado consolidado" },
-    { label: "Escenario GVC 2030", value: "16.388 M EUR", note: "AUM estimado por GVC Gaesco" },
-  ];
+function InvestmentThesisPage({ today, lastDate, lang }) {
+  const isEnglish = lang === "en";
+  const thesisMetrics = isEnglish
+    ? [
+        { label: "2025 AUM", value: "EUR 4,403m", note: "audited 2025 year-end" },
+        { label: "2025 clients", value: "134k", note: "base of the 2030 curve" },
+        { label: "2025 net profit", value: "EUR 2.4m", note: "consolidated result" },
+        { label: "GVC 2030 scenario", value: "EUR 16,388m", note: "AUM estimated by GVC Gaesco" },
+      ]
+    : [
+        { label: "AUM 2025", value: "4.403 M EUR", note: "cierre 2025 auditado" },
+        { label: "Clientes 2025", value: "134 mil", note: "base de la curva 2030" },
+        { label: "Beneficio neto 2025", value: "2,4 M EUR", note: "resultado consolidado" },
+        { label: "Escenario GVC 2030", value: "16.388 M EUR", note: "AUM estimado por GVC Gaesco" },
+      ];
 
-  const pillars = [
-    {
-      title: "Mercado final grande e infraoptimizado",
-      body: "El ahorro español sigue teniendo una elevada exposición a liquidez y productos bancarios de baja remuneración. La tesis asume que una parte creciente de ese capital migrará hacia soluciones de inversión diversificadas, sencillas y de menor coste.",
-    },
-    {
-      title: "Producto con fricción baja",
-      body: "Indexa reduce el trabajo operativo del cliente: perfilado, aportaciones, rebalanceos y mantenimiento de cartera. El atractivo no es solo coste, también disciplina y delegación.",
-    },
-    {
-      title: "Ventaja fiscal frente a ETF",
-      body: "En España, las carteras basadas en fondos permiten traspasos sin tributación inmediata. Esa característica puede ser una barrera práctica frente a neobancos y brokers centrados en ETF.",
-    },
-    {
-      title: "Apalancamiento operativo",
-      body: "Si AUM y clientes crecen más rápido que costes de personal, tecnología y marketing, el margen incremental puede ser elevado. Esta es la parte clave de la tesis bursátil.",
-    },
-  ];
+  const pillars = isEnglish
+    ? [
+        {
+          title: "Large and under-optimized end market",
+          body: "Spanish savings still have high exposure to cash and low-yielding bank products. The thesis assumes that part of that capital will gradually migrate toward diversified, simple and lower-cost investment solutions.",
+        },
+        {
+          title: "Low-friction product",
+          body: "Indexa reduces operational work for the client: profiling, contributions, rebalancing and portfolio maintenance. The appeal is not only cost, but also discipline and delegation.",
+        },
+        {
+          title: "Tax advantage versus ETFs",
+          body: "In Spain, fund-based portfolios allow transfers without immediate taxation. That feature can be a practical barrier versus neobanks and brokers focused on ETFs.",
+        },
+        {
+          title: "Operating leverage",
+          body: "If AUM and clients grow faster than staff, technology and marketing costs, incremental margins can be high. This is the key equity thesis driver.",
+        },
+      ]
+    : [
+        {
+          title: "Mercado final grande e infraoptimizado",
+          body: "El ahorro español sigue teniendo una elevada exposición a liquidez y productos bancarios de baja remuneración. La tesis asume que una parte creciente de ese capital migrará hacia soluciones de inversión diversificadas, sencillas y de menor coste.",
+        },
+        {
+          title: "Producto con fricción baja",
+          body: "Indexa reduce el trabajo operativo del cliente: perfilado, aportaciones, rebalanceos y mantenimiento de cartera. El atractivo no es solo coste, también disciplina y delegación.",
+        },
+        {
+          title: "Ventaja fiscal frente a ETF",
+          body: "En España, las carteras basadas en fondos permiten traspasos sin tributación inmediata. Esa característica puede ser una barrera práctica frente a neobancos y brokers centrados en ETF.",
+        },
+        {
+          title: "Apalancamiento operativo",
+          body: "Si AUM y clientes crecen más rápido que costes de personal, tecnología y marketing, el margen incremental puede ser elevado. Esta es la parte clave de la tesis bursátil.",
+        },
+      ];
 
-  const risks = [
-    "Caída prolongada de mercados que reduzca AUM, ARR y apetito de aportaciones.",
-    "Compresión de comisiones por competencia de bancos, neobancos o roboadvisors.",
-    "Cambios fiscales que reduzcan la ventaja de los fondos frente a ETF.",
-    "Deterioro de experiencia de usuario, confianza, soporte o reputación de marca.",
-    "Baja liquidez de la acción y valoración sensible a la prima exigida por BME Growth.",
-    "Ejecución peor de la esperada en Francia, Bewater o nuevas líneas de producto.",
-  ];
+  const risks = isEnglish
+    ? [
+        "A prolonged market drawdown that reduces AUM, ARR and appetite for new inflows.",
+        "Fee compression from banks, neobanks or roboadvisor competition.",
+        "Tax changes that reduce the advantage of funds versus ETFs.",
+        "Deterioration in user experience, trust, support or brand reputation.",
+        "Low share liquidity and valuation sensitivity to the premium required by BME Growth investors.",
+        "Weaker-than-expected execution in France, Bewater or new product lines.",
+      ]
+    : [
+        "Caída prolongada de mercados que reduzca AUM, ARR y apetito de aportaciones.",
+        "Compresión de comisiones por competencia de bancos, neobancos o roboadvisors.",
+        "Cambios fiscales que reduzcan la ventaja de los fondos frente a ETF.",
+        "Deterioro de experiencia de usuario, confianza, soporte o reputación de marca.",
+        "Baja liquidez de la acción y valoración sensible a la prima exigida por BME Growth.",
+        "Ejecución peor de la esperada en Francia, Bewater o nuevas líneas de producto.",
+      ];
 
   return (
     <div className="thesis-page">
       <section className="thesis-hero">
-        <p className="section-eyebrow">Tesis de inversión · borrador editorial</p>
-        <h2>Indexa como vehículo cotizado para capturar la transición hacia inversión indexada de bajo coste</h2>
+        <p className="section-eyebrow">
+          {isEnglish ? "Investment thesis · editorial draft" : "Tesis de inversión · borrador editorial"}
+        </p>
+        <h2>
+          {isEnglish
+            ? "Indexa as a listed vehicle to capture the transition toward low-cost indexed investing"
+            : "Indexa como vehículo cotizado para capturar la transición hacia inversión indexada de bajo coste"}
+        </h2>
         <p className="thesis-lede">
-          La tesis preliminar es que Indexa Capital combina un mercado estructuralmente
-          favorable, una propuesta de valor simple para el ahorrador, ventaja fiscal local y
-          un modelo operativo escalable. La oportunidad bursátil depende de que ese
-          crecimiento se traduzca en beneficios, caja y mayor liquidez de la acción.
+          {isEnglish
+            ? "The preliminary thesis is that Indexa Capital combines a structurally favorable market, a simple value proposition for savers, a local tax advantage and a scalable operating model. The equity opportunity depends on that growth translating into earnings, cash generation and better share liquidity."
+            : "La tesis preliminar es que Indexa Capital combina un mercado estructuralmente favorable, una propuesta de valor simple para el ahorrador, ventaja fiscal local y un modelo operativo escalable. La oportunidad bursátil depende de que ese crecimiento se traduzca en beneficios, caja y mayor liquidez de la acción."}
         </p>
         <div className="thesis-disclaimer">
-          Borrador en revisión. Esta página ordena una hipótesis de inversión y no constituye
-          recomendación financiera. Algunas cifras proceden de datos públicos y otras de
-          estimaciones de GVC Gaesco o cálculos propios.
+          {isEnglish
+            ? "Draft under review. This page structures an investment hypothesis and does not constitute financial advice. Some figures come from public data, while others come from GVC Gaesco estimates or proprietary calculations."
+            : "Borrador en revisión. Esta página ordena una hipótesis de inversión y no constituye recomendación financiera. Algunas cifras proceden de datos públicos y otras de estimaciones de GVC Gaesco o cálculos propios."}
         </div>
       </section>
 
@@ -260,24 +436,24 @@ function InvestmentThesisPage({ today, lastDate }) {
         <div className="thesis-section-head">
           <span>01</span>
           <div>
-            <h2>Tesis central</h2>
+            <h2>{isEnglish ? "Core thesis" : "Tesis central"}</h2>
             <p>
-              Indexa puede beneficiarse de una migración gradual desde ahorro bancario y
-              fondos caros hacia carteras indexadas, automatizadas y fiscalmente eficientes.
+              {isEnglish
+                ? "Indexa can benefit from a gradual migration from bank savings and expensive funds toward indexed, automated and tax-efficient portfolios."
+                : "Indexa puede beneficiarse de una migración gradual desde ahorro bancario y fondos caros hacia carteras indexadas, automatizadas y fiscalmente eficientes."}
             </p>
           </div>
         </div>
         <div className="thesis-argument">
           <p>
-            El argumento no descansa en que Indexa sea simplemente más barata que la banca.
-            Descansa en que resuelve un problema conductual: muchos ahorradores no quieren
-            construir, rebalancear y sostener una cartera por su cuenta. Compran delegación,
-            disciplina y una estructura de costes razonable.
+            {isEnglish
+              ? "The argument is not simply that Indexa is cheaper than banks. It is that it solves a behavioral problem: many savers do not want to build, rebalance and maintain a portfolio by themselves. They buy delegation, discipline and a reasonable cost structure."
+              : "El argumento no descansa en que Indexa sea simplemente más barata que la banca. Descansa en que resuelve un problema conductual: muchos ahorradores no quieren construir, rebalancear y sostener una cartera por su cuenta. Compran delegación, disciplina y una estructura de costes razonable."}
           </p>
           <p>
-            Como inversión cotizada, el punto crítico es si esa captación puede sostenerse
-            con un coste de adquisición bajo, baja cancelación y costes operativos que crezcan
-            más despacio que ingresos y AUM.
+            {isEnglish
+              ? "As a listed investment, the critical point is whether that inflow growth can be sustained with low acquisition costs, low churn and operating costs that grow more slowly than revenue and AUM."
+              : "Como inversión cotizada, el punto crítico es si esa captación puede sostenerse con un coste de adquisición bajo, baja cancelación y costes operativos que crezcan más despacio que ingresos y AUM."}
           </p>
         </div>
       </section>
@@ -286,8 +462,8 @@ function InvestmentThesisPage({ today, lastDate }) {
         <div className="thesis-section-head">
           <span>02</span>
           <div>
-            <h2>Números de partida</h2>
-            <p>Datos y referencias para situar el caso antes de entrar en escenarios.</p>
+            <h2>{isEnglish ? "Starting numbers" : "Números de partida"}</h2>
+            <p>{isEnglish ? "Data and references to frame the case before moving into scenarios." : "Datos y referencias para situar el caso antes de entrar en escenarios."}</p>
           </div>
         </div>
         <div className="thesis-metric-grid">
@@ -303,41 +479,41 @@ function InvestmentThesisPage({ today, lastDate }) {
           <table className="thesis-table">
             <thead>
               <tr>
-                <th>Métrica</th>
+                <th>{isEnglish ? "Metric" : "Métrica"}</th>
                 <th>2025</th>
                 <th>2026e</th>
                 <th>2030e GVC</th>
-                <th>Lectura</th>
+                <th>{isEnglish ? "Read-through" : "Lectura"}</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td>Clientes</td>
+                <td>{isEnglish ? "Clients" : "Clientes"}</td>
                 <td>134 mil</td>
                 <td>178 mil</td>
                 <td>454 mil</td>
-                <td>Crecimiento de base y recurrencia potencial.</td>
+                <td>{isEnglish ? "Client base growth and potential recurrence." : "Crecimiento de base y recurrencia potencial."}</td>
               </tr>
               <tr>
                 <td>AUM</td>
                 <td>4.403 M EUR</td>
                 <td>5.816 M EUR</td>
                 <td>16.388 M EUR</td>
-                <td>Principal motor de ARR y valoración.</td>
+                <td>{isEnglish ? "Main driver of ARR and valuation." : "Principal motor de ARR y valoración."}</td>
               </tr>
               <tr>
-                <td>Beneficio neto</td>
+                <td>{isEnglish ? "Net profit" : "Beneficio neto"}</td>
                 <td>2,4 M EUR</td>
                 <td>4,9 M EUR</td>
                 <td>20,8 M EUR</td>
-                <td>Hipótesis de apalancamiento operativo.</td>
+                <td>{isEnglish ? "Operating leverage hypothesis." : "Hipótesis de apalancamiento operativo."}</td>
               </tr>
               <tr>
-                <td>Meta pública</td>
+                <td>{isEnglish ? "Public target" : "Meta pública"}</td>
                 <td>-</td>
                 <td>-</td>
                 <td>{euroCompact.format(COMPANY_TARGET.arrEnd)} ARR</td>
-                <td>Meta comunicada por la compañía; AUM implícito propio: {euroCompact.format(COMPANY_TARGET.aumEnd)}.</td>
+                <td>{isEnglish ? "Company-communicated target; own implied AUM: " : "Meta comunicada por la compañía; AUM implícito propio: "}{euroCompact.format(COMPANY_TARGET.aumEnd)}.</td>
               </tr>
             </tbody>
           </table>
@@ -348,8 +524,8 @@ function InvestmentThesisPage({ today, lastDate }) {
         <div className="thesis-section-head">
           <span>03</span>
           <div>
-            <h2>Pilares de la tesis</h2>
-            <p>Los puntos que deben seguir siendo ciertos para que la tesis gane fuerza.</p>
+            <h2>{isEnglish ? "Thesis pillars" : "Pilares de la tesis"}</h2>
+            <p>{isEnglish ? "The points that need to remain true for the thesis to strengthen." : "Los puntos que deben seguir siendo ciertos para que la tesis gane fuerza."}</p>
           </div>
         </div>
         <div className="thesis-card-grid">
@@ -367,30 +543,50 @@ function InvestmentThesisPage({ today, lastDate }) {
           <div className="thesis-section-head compact">
             <span>04</span>
             <div>
-              <h2>Ventajas competitivas a vigilar</h2>
+              <h2>{isEnglish ? "Competitive advantages to monitor" : "Ventajas competitivas a vigilar"}</h2>
             </div>
           </div>
           <ul className="thesis-list">
-            <li>Marca y confianza en una categoría donde el cliente delega patrimonio a largo plazo.</li>
-            <li>Coste total competitivo frente a banca tradicional y carteras gestionadas caras.</li>
-            <li>Fiscalidad española de fondos, especialmente relevante para rebalanceos.</li>
-            <li>Datos históricos de aportaciones netas positivas como señal de comportamiento cliente.</li>
-            <li>Opcionalidad en pensiones, Francia, Bewater, mercados privados y cuenta remunerada.</li>
+            {(isEnglish
+              ? [
+                  "Brand and trust in a category where the client delegates long-term wealth.",
+                  "Competitive total cost versus traditional banking and expensive managed portfolios.",
+                  "Spanish fund taxation, especially relevant for rebalancing.",
+                  "Historical positive net inflow data as a signal of client behavior.",
+                  "Optionality in pensions, France, Bewater, private markets and cash accounts.",
+                ]
+              : [
+                  "Marca y confianza en una categoría donde el cliente delega patrimonio a largo plazo.",
+                  "Coste total competitivo frente a banca tradicional y carteras gestionadas caras.",
+                  "Fiscalidad española de fondos, especialmente relevante para rebalanceos.",
+                  "Datos históricos de aportaciones netas positivas como señal de comportamiento cliente.",
+                  "Opcionalidad en pensiones, Francia, Bewater, mercados privados y cuenta remunerada.",
+                ]).map((item) => <li key={item}>{item}</li>)}
           </ul>
         </div>
         <div>
           <div className="thesis-section-head compact">
             <span>05</span>
             <div>
-              <h2>Qué invalidaría la tesis</h2>
+              <h2>{isEnglish ? "What would invalidate the thesis" : "Qué invalidaría la tesis"}</h2>
             </div>
           </div>
           <ul className="thesis-list">
-            <li>Captación neta persistentemente por debajo del ritmo necesario para la meta 2030.</li>
-            <li>Reducción de fee media sin compensación suficiente en volumen.</li>
-            <li>Costes de personal, marketing o soporte creciendo más rápido que ingresos.</li>
-            <li>Pérdida de diferenciación frente a MyInvestor, Finizens, bancos o brokers globales.</li>
-            <li>Descuento bursátil permanente por iliquidez o baja cobertura institucional.</li>
+            {(isEnglish
+              ? [
+                  "Net inflows persistently below the pace required for the 2030 target.",
+                  "Average fee reduction without enough volume compensation.",
+                  "Staff, marketing or support costs growing faster than revenue.",
+                  "Loss of differentiation versus MyInvestor, Finizens, banks or global brokers.",
+                  "Permanent public-market discount due to illiquidity or low institutional coverage.",
+                ]
+              : [
+                  "Captación neta persistentemente por debajo del ritmo necesario para la meta 2030.",
+                  "Reducción de fee media sin compensación suficiente en volumen.",
+                  "Costes de personal, marketing o soporte creciendo más rápido que ingresos.",
+                  "Pérdida de diferenciación frente a MyInvestor, Finizens, bancos o brokers globales.",
+                  "Descuento bursátil permanente por iliquidez o baja cobertura institucional.",
+                ]).map((item) => <li key={item}>{item}</li>)}
           </ul>
         </div>
       </section>
@@ -399,8 +595,8 @@ function InvestmentThesisPage({ today, lastDate }) {
         <div className="thesis-section-head">
           <span>06</span>
           <div>
-            <h2>Riesgos principales</h2>
-            <p>La tesis debe leerse junto con sus puntos de ruptura, no como una narrativa lineal.</p>
+            <h2>{isEnglish ? "Main risks" : "Riesgos principales"}</h2>
+            <p>{isEnglish ? "The thesis should be read together with its breaking points, not as a linear narrative." : "La tesis debe leerse junto con sus puntos de ruptura, no como una narrativa lineal."}</p>
           </div>
         </div>
         <div className="risk-grid">
@@ -414,18 +610,18 @@ function InvestmentThesisPage({ today, lastDate }) {
         <div className="thesis-section-head">
           <span>07</span>
           <div>
-            <h2>Fuentes base</h2>
-            <p>Referencias que conviene mantener enlazadas y contrastar antes de publicar cifras nuevas.</p>
+            <h2>{isEnglish ? "Core sources" : "Fuentes base"}</h2>
+            <p>{isEnglish ? "References that should remain linked and checked before publishing new figures." : "Referencias que conviene mantener enlazadas y contrastar antes de publicar cifras nuevas."}</p>
           </div>
         </div>
         <div className="source-list">
-          <a href="https://indexacapital.com/es/esp/stats" target="_blank" rel="noopener noreferrer">Estadísticas públicas de Indexa Capital</a>
-          <a href="https://group.indexacapital.com/en/documents" target="_blank" rel="noopener noreferrer">Documentos para inversores de Indexa Capital Group</a>
-          <a href="https://www.bmegrowth.es/esp/Ficha/INDEXA_CAPITAL_GROUP_ES0105702007.aspx" target="_blank" rel="noopener noreferrer">Ficha de Indexa Capital Group en BME Growth</a>
-          <a href="https://www.bmegrowth.es/docs/analisis/2026/04/05702_Analisis_20260413.pdf?Vu2JMQ%21%21=" target="_blank" rel="noopener noreferrer">Informe GVC Gaesco del 13 de abril de 2026</a>
+          <a href="https://indexacapital.com/es/esp/stats" target="_blank" rel="noopener noreferrer">{isEnglish ? "Indexa Capital public statistics" : "Estadísticas públicas de Indexa Capital"}</a>
+          <a href="https://group.indexacapital.com/en/documents" target="_blank" rel="noopener noreferrer">{isEnglish ? "Indexa Capital Group investor documents" : "Documentos para inversores de Indexa Capital Group"}</a>
+          <a href="https://www.bmegrowth.es/esp/Ficha/INDEXA_CAPITAL_GROUP_ES0105702007.aspx" target="_blank" rel="noopener noreferrer">{isEnglish ? "Indexa Capital Group profile on BME Growth" : "Ficha de Indexa Capital Group en BME Growth"}</a>
+          <a href="https://www.bmegrowth.es/docs/analisis/2026/04/05702_Analisis_20260413.pdf?Vu2JMQ%21%21=" target="_blank" rel="noopener noreferrer">{isEnglish ? "GVC Gaesco report dated 13 April 2026" : "Informe GVC Gaesco del 13 de abril de 2026"}</a>
         </div>
         <p className="thesis-footnote">
-          Último dato del dashboard: {fmtDate(lastDate)}. Página de tesis actualizada: {fmtDate(today)}.
+          {isEnglish ? "Latest dashboard data: " : "Último dato del dashboard: "}{fmtDate(lastDate)}. {isEnglish ? "Thesis page updated: " : "Página de tesis actualizada: "}{fmtDate(today)}.
         </p>
       </section>
     </div>
@@ -452,7 +648,11 @@ function fmtPctPoint(value) {
 }
 
 function useHashRoute() {
-  const readRoute = () => window.location.hash.replace(/^#\/?/, "") || "dashboard";
+  const readRoute = () => {
+    const rawRoute = window.location.hash.replace(/^#\/?/, "") || "dashboard";
+    if (rawRoute === "en") return "en/dashboard";
+    return rawRoute;
+  };
   const [route, setRoute] = useState(readRoute);
 
   useEffect(() => {
@@ -462,6 +662,15 @@ function useHashRoute() {
   }, []);
 
   return route;
+}
+
+function parseLocalizedRoute(route) {
+  const isEnglish = route === "en" || route.startsWith("en/");
+  const normalizedRoute = isEnglish ? route.replace(/^en\/?/, "") || "dashboard" : route;
+  return {
+    lang: isEnglish ? "en" : "es",
+    page: normalizedRoute === "tesis" ? "tesis" : "dashboard",
+  };
 }
 
 function StatusBadge({ delta }) {
@@ -1772,6 +1981,8 @@ export default function App() {
   const [error, setError] = useState(null);
   const [showDisclaimer, setShowDisclaimer] = useState(() => !localStorage.getItem(DISCLAIMER_KEY));
   const route = useHashRoute();
+  const { lang, page } = parseLocalizedRoute(route);
+  const t = I18N[lang];
 
   const closeDisclaimer = useCallback(() => {
     localStorage.setItem(DISCLAIMER_KEY, "1");
@@ -1782,8 +1993,8 @@ export default function App() {
     loadIndexaDataset().then(setDataset).catch(setError);
   }, []);
 
-  if (error) return <div className="loading">Error al cargar los datos: {error.message}</div>;
-  if (!dataset) return <div className="loading">Cargando datos...</div>;
+  if (error) return <div className="loading">{t.loadingError}: {error.message}</div>;
+  if (!dataset) return <div className="loading">{t.loadingData}</div>;
 
   const tracker = buildTrackerData(dataset);
   const periodComp = buildPeriodComparison(dataset);
@@ -1815,48 +2026,51 @@ export default function App() {
   } = tracker;
 
   const today = new Date();
-  const isThesisPage = route === "tesis";
+  const isThesisPage = page === "tesis";
 
   return (
     <div className="app">
-      {showDisclaimer && <DisclaimerModal onClose={closeDisclaimer} />}
+      {showDisclaimer && <DisclaimerModal onClose={closeDisclaimer} t={t} />}
       <header className="app-header">
         <div className="header-inner">
           <BrandSignature productName="Indexa Tracker" />
-          <HeaderNav activePage={isThesisPage ? "tesis" : "dashboard"} />
+          <div className="header-actions">
+            <HeaderNav activePage={isThesisPage ? "tesis" : "dashboard"} lang={lang} t={t} />
+            <LanguageSwitch activePage={isThesisPage ? "tesis" : "dashboard"} lang={lang} t={t} />
+          </div>
         </div>
       </header>
 
       <main className={`app-main ${isThesisPage ? "app-main-thesis" : ""}`}>
         {isThesisPage ? (
-          <InvestmentThesisPage today={today} lastDate={lastDate} />
+          <InvestmentThesisPage today={today} lastDate={lastDate} lang={lang} />
         ) : (
           <>
-            <DashboardIntro today={today} lastDate={lastDate} />
+            <DashboardIntro today={today} lastDate={lastDate} lang={lang} t={t} />
 
         <section>
-          <p className="section-eyebrow">Resumen vs referencia 2030 · {fmtDate(today)}</p>
+          <p className="section-eyebrow">{t.summaryVsReference} · {fmtDate(today)}</p>
           <div className="status-grid">
             <MetricCard
-              label="AUM último dato público"
+              label={t.latestAum}
               value={euroCompact.format(currentAum)}
-              sub={`Referencia hoy: ${euroCompact.format(targetAumNow)} · Referencia cierre de año: ${euroCompact.format(targetYearEnd)}`}
+              sub={`${t.todayReference}: ${euroCompact.format(targetAumNow)} · ${t.yearEndReference}: ${euroCompact.format(targetYearEnd)}`}
               delta={aumDeltaPct}
               info={<p>Activos bajo gestión a la fecha del último dato público. Se compara con una curva de referencia propia: CAGR ~22% desde {euroCompact.format(COMPANY_TARGET.aumStart)} a fin de 2025 hasta {euroCompact.format(COMPANY_TARGET.aumEnd)} en 2030. El badge indica la posición frente a esa referencia.</p>}
             />
 
             <MetricCard
-              label="ARR estimado"
+              label={t.estimatedArr}
               value={euroCompact.format(currentArr)}
-              sub={`Referencia hoy: ${euroCompact.format(targetArrNow)} · Meta 2030 comunicada: ${euroCompact.format(COMPANY_TARGET.arrEnd)}`}
+              sub={`${t.todayReference}: ${euroCompact.format(targetArrNow)} · ${t.communicatedTarget2030}: ${euroCompact.format(COMPANY_TARGET.arrEnd)}`}
               delta={arrDeltaPct}
               info={<p>Ingresos anuales recurrentes estimados: AUM actual × comisión media anual. Es el ritmo de ingresos si el AUM se mantuviera constante un año entero. La meta de 30 M EUR ARR en 2030 fue comunicada por Indexa y está recogida en el informe de GVC Gaesco.</p>}
             />
 
             <MetricCard
-              label="AUM fin de año estimado"
+              label={t.estimatedYearEndAum}
               value={euroCompact.format(projectedYeAum)}
-              sub={`Estimación propia · ${euroCompact.format(avgMonthlyInflow)}/mes neto · referencia: ${euroCompact.format(targetYearEnd)}`}
+              sub={`${t.ownEstimate} · ${euroCompact.format(avgMonthlyInflow)}/${t.netPerMonth} · ${t.reference}: ${euroCompact.format(targetYearEnd)}`}
               delta={paceDeltaPct}
               info={<><p>Estimación propia del AUM a 31 de diciembre calculada como:</p><p style={{marginTop:6, fontFamily:"monospace", fontSize:"0.82em", background:"rgba(255,255,255,0.08)", padding:"4px 8px", borderRadius:4}}>AUM × (1 + 5%/12)^meses + aportaciones_medias × meses</p><p style={{marginTop:6}}>Se asume un 5% anual de rentabilidad de mercado y se extrapola el ritmo de aportaciones netas de los últimos 3 meses.</p></>}
             />
@@ -2053,11 +2267,11 @@ export default function App() {
           <HistoryTable yearlyRows={dataset.yearlyRows} />
         </section>
 
-        <SourceMethodology />
+        <SourceMethodology t={t} />
           </>
         )}
       </main>
-      <Footer onOpenDisclaimer={() => setShowDisclaimer(true)} />
+      <Footer onOpenDisclaimer={() => setShowDisclaimer(true)} lang={lang} t={t} />
     </div>
   );
 }

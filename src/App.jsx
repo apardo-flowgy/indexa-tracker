@@ -78,19 +78,19 @@ function HeaderNav({ activePage }) {
 
 function ContextBanner({ today, lastDate }) {
   return (
-    <section className="context-band" aria-label="Contexto del dashboard">
+    <div className="context-band" aria-label="Contexto del dashboard">
       <div>
         <strong>Dashboard independiente, no afiliado a Indexa Capital.</strong>
         <p>
-          Combina datos públicos, una meta 2030 comunicada por la compañía, estimaciones
-          del informe de GVC Gaesco del 13 de abril de 2026 y cálculos propios.
+          Datos públicos, meta 2030 comunicada por la compañía, estimaciones de GVC
+          Gaesco y cálculos propios.
         </p>
       </div>
       <div className="context-dates">
         <span>Último dato público: <strong>{fmtDate(lastDate)}</strong></span>
         <span>Cálculos actualizados: <strong>{fmtDate(today)}</strong></span>
       </div>
-    </section>
+    </div>
   );
 }
 
@@ -136,16 +136,24 @@ function SourceMethodology() {
 
 function ThesisTeaser() {
   return (
-    <section className="thesis-teaser">
+    <aside className="thesis-teaser" aria-label="Acceso a tesis de inversión">
       <div>
         <span className="section-eyebrow">Tesis de inversión</span>
         <h2>La lectura estratégica detrás del tracker</h2>
         <p>
-          Un borrador editorial que ordena la hipótesis de inversión: mercado,
-          ventajas competitivas, escenario GVC Gaesco, riesgos e invalidadores.
+          Hipótesis, ventajas, escenario GVC, riesgos e invalidadores.
         </p>
       </div>
       <a className="thesis-teaser-link" href="#/tesis">Ver tesis</a>
+    </aside>
+  );
+}
+
+function DashboardIntro({ today, lastDate }) {
+  return (
+    <section className="dashboard-intro">
+      <ContextBanner today={today} lastDate={lastDate} />
+      <ThesisTeaser />
     </section>
   );
 }
@@ -1791,8 +1799,7 @@ export default function App() {
           <InvestmentThesisPage today={today} lastDate={lastDate} />
         ) : (
           <>
-            <ContextBanner today={today} lastDate={lastDate} />
-            <ThesisTeaser />
+            <DashboardIntro today={today} lastDate={lastDate} />
 
         <section>
           <p className="section-eyebrow">Resumen vs referencia 2030 · {fmtDate(today)}</p>

@@ -10,6 +10,46 @@ import {
 } from "./data";
 
 const DISCLAIMER_KEY = "indexa-tracker-disclaimer-v1";
+const BRAND_HOME_URL = "https://apardo-flowgy.github.io/personal-portfolio/";
+
+function BrandMark() {
+  return (
+    <svg className="brand-mark" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+      <rect width="64" height="64" rx="14" fill="#111827" />
+      <path
+        d="M18 47 29.5 16h5L46 47h-6.5l-2.2-6.4H26.7L24.5 47H18Zm10.5-11.9h7L32 24.7l-3.5 10.4Z"
+        fill="#F8FAFC"
+      />
+      <path
+        d="M17 42.5 25.5 36l6.5 2.5 10.5-12 5 2.5"
+        fill="none"
+        stroke="#2DD4BF"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="4"
+      />
+      <circle cx="47.5" cy="29" r="3.2" fill="#FBBF24" />
+    </svg>
+  );
+}
+
+function BrandSignature({ productName }) {
+  return (
+    <a
+      className="brand-signature"
+      href={BRAND_HOME_URL}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={`Alex Finance Lab - ${productName}`}
+    >
+      <BrandMark />
+      <span className="brand-signature-text">
+        <span className="brand-name">Alex Finance Lab</span>
+        <span className="brand-product">{productName}</span>
+      </span>
+    </a>
+  );
+}
 
 function DisclaimerModal({ onClose }) {
   return (
@@ -43,6 +83,10 @@ function Footer({ onOpenDisclaimer }) {
     <footer className="app-footer">
       <div className="footer-inner">
         <div className="footer-links">
+          <a className="footer-brand-link" href={BRAND_HOME_URL} target="_blank" rel="noopener noreferrer">
+            <BrandMark />
+            Alex Finance Lab
+          </a>
           <a href="#/">
             Dashboard
           </a>
@@ -1779,6 +1823,7 @@ export default function App() {
       <header className="app-header">
         <div className="header-inner">
           <div>
+            <BrandSignature productName="Indexa Tracker" />
             <h1>Indexa Capital Tracker</h1>
             <p className="header-sub">
               Seguimiento independiente. Meta 2030 comunicada por la compañía: {euroCompact.format(COMPANY_TARGET.arrEnd)} ARR · AUM implícito: {euroCompact.format(COMPANY_TARGET.aumEnd)} con fee media del {percent.format(COMPANY_TARGET.feeRate)}

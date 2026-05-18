@@ -33,6 +33,46 @@ button, input { font: inherit; cursor: pointer; }
   gap: 16px;
 }
 
+.brand-signature {
+  color: #F8FAFC;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  text-decoration: none;
+}
+
+.brand-mark {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  display: block;
+  border-radius: 8px;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.28);
+}
+
+.brand-signature-text {
+  display: grid;
+  gap: 2px;
+  line-height: 1.05;
+}
+
+.brand-name {
+  color: #F8FAFC;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.brand-product {
+  color: rgba(248,250,252,0.58);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.brand-signature:hover .brand-product { color: rgba(248,250,252,0.9); }
+
 .app-header h1 { font-size: 1.3rem; font-weight: 700; margin-bottom: 3px; }
 .header-sub {
   max-width: 820px;
@@ -863,6 +903,21 @@ button, input { font: inherit; cursor: pointer; }
 }
 
 .footer-links a:hover { color: #F8FAFC; }
+
+.footer-links .footer-brand-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(248, 250, 252, 0.78);
+  font-weight: 800;
+}
+
+.footer-brand-link .brand-mark {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  box-shadow: none;
+}
 
 .footer-disclaimer-btn {
   background: none;

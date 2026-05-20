@@ -34,6 +34,7 @@ const I18N = {
     understood: "Entendido",
     dashboard: "Dashboard",
     thesis: "Tesis",
+    news: "Noticias",
     investmentThesis: "Tesis de inversión",
     officialWebsite: "Web oficial",
     publicData: "Datos públicos",
@@ -160,6 +161,15 @@ const I18N = {
     quarterlyFormula: "aportaciones acumuladas / dias transcurridos x dias totales del trimestre",
     monthlyUsefulness: "Util para ver si el ritmo de este mes es alto o bajo comparado con anos anteriores.",
     quarterlyUsefulness: "Util para ver si el ritmo de este trimestre es alto o bajo comparado con anos anteriores.",
+    monthsShort: ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"],
+    newsEyebrow: "Noticias",
+    newsTitle: "Catalizadores y lectura externa",
+    newsIntro: "Archivo de noticias relevantes para seguir el contexto de Indexa Capital, roboadvisors, ahorro familiar y gestion pasiva. Cada entrada separa el hecho publicado de la lectura para la tesis.",
+    newsSource: "Fuente",
+    newsDate: "Fecha",
+    newsWhyItMatters: "Por que importa",
+    newsOpenArticle: "Abrir noticia",
+    newsDisclaimer: "Este apartado enlaza fuentes externas y resume su relevancia editorial. No implica afiliacion con Indexa Capital ni recomendacion de inversion.",
   },
   en: {
     importantNotice: "Important notice",
@@ -181,6 +191,7 @@ const I18N = {
     understood: "Understood",
     dashboard: "Dashboard",
     thesis: "Thesis",
+    news: "News",
     investmentThesis: "Investment thesis",
     officialWebsite: "Official website",
     publicData: "Public data",
@@ -307,13 +318,46 @@ const I18N = {
     quarterlyFormula: "accumulated inflows / elapsed days x total days in quarter",
     monthlyUsefulness: "Useful to see whether this month's pace is high or low compared with previous years.",
     quarterlyUsefulness: "Useful to see whether this quarter's pace is high or low compared with previous years.",
+    monthsShort: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
+    newsEyebrow: "News",
+    newsTitle: "Catalysts and external coverage",
+    newsIntro: "Archive of relevant news for tracking Indexa Capital, roboadvisors, household savings and passive investing. Each entry separates the reported fact from the investment-thesis read-through.",
+    newsSource: "Source",
+    newsDate: "Date",
+    newsWhyItMatters: "Why it matters",
+    newsOpenArticle: "Open article",
+    newsDisclaimer: "This section links to external sources and summarizes their editorial relevance. It does not imply affiliation with Indexa Capital or investment advice.",
   },
 };
 
 function getLocalizedPath(lang, page) {
   const prefix = lang === "en" ? "/en" : "";
+  if (page === "noticias") return `#${prefix}/${lang === "en" ? "news" : "noticias"}`;
   return page === "tesis" ? `#${prefix}/tesis` : `#${prefix}/`;
 }
+
+const NEWS_ITEMS = [
+  {
+    id: "cincodias-roboadvisors-2026-04-24",
+    date: "2026-04-24",
+    source: "Cinco Dias",
+    author: "Vera Castello",
+    url: "https://cincodias.elpais.com/extras/inversion-fondos-planes/2026-04-24/roboadvisors-inversion-automatizada-que-gana-peso-por-costes-eficiencia-y-accesibilidad.html",
+    title: {
+      es: "Roboadvisors: inversion automatizada que gana peso por costes, eficiencia y accesibilidad",
+      en: "Roboadvisors: automated investing gains weight through cost, efficiency and accessibility",
+    },
+    summary: {
+      es: "Cinco Dias presenta la gestion automatizada como una via cada vez mas consolidada para el ahorrador particular en Espana. En el repaso del sector destaca a Indexa Capital por crecimiento y volumen, citando 5.031 M EUR de patrimonio, un 63% mas interanual, y mas de 150.000 clientes.",
+      en: "Cinco Dias frames automated portfolio management as an increasingly established route for retail savers in Spain. In its sector overview, it highlights Indexa Capital for growth and scale, citing EUR 5.031bn in assets, up 63% year on year, and more than 150,000 clients.",
+    },
+    readThrough: {
+      es: "Refuerza dos piezas de la tesis: el crecimiento de la categoria roboadvisor ya no es marginal y la propuesta de coste/eficiencia de Indexa sigue apareciendo como referencia frente a banca y otros actores.",
+      en: "It reinforces two parts of the thesis: roboadvisor category growth is no longer marginal, and Indexa's cost/efficiency proposition continues to appear as a reference point versus banks and other players.",
+    },
+    tags: ["Roboadvisors", "Gestion automatizada", "Indexa Capital", "Costes"],
+  },
+];
 
 function BrandMark() {
   return (
@@ -391,6 +435,9 @@ function Footer({ onOpenDisclaimer, lang, t }) {
           <a href={getLocalizedPath(lang, "tesis")}>
             {t.investmentThesis}
           </a>
+          <a href={getLocalizedPath(lang, "noticias")}>
+            {t.news}
+          </a>
           <a href="https://indexacapital.com" target="_blank" rel="noopener noreferrer">
             {t.officialWebsite}
           </a>
@@ -414,6 +461,7 @@ function HeaderNav({ activePage, lang, t }) {
     <nav className="header-nav" aria-label={t.navLabel}>
       <a className={activePage === "dashboard" ? "active" : ""} href={getLocalizedPath(lang, "dashboard")}>{t.dashboard}</a>
       <a className={activePage === "tesis" ? "active" : ""} href={getLocalizedPath(lang, "tesis")}>{t.thesis}</a>
+      <a className={activePage === "noticias" ? "active" : ""} href={getLocalizedPath(lang, "noticias")}>{t.news}</a>
     </nav>
   );
 }
@@ -502,6 +550,43 @@ function DashboardIntro({ today, lastDate, lang, t }) {
       <ContextBanner today={today} lastDate={lastDate} lang={lang} t={t} />
       <ThesisTeaser lang={lang} t={t} />
     </section>
+  );
+}
+
+function NewsPage({ lang, t }) {
+  return (
+    <div className="news-page">
+      <section className="thesis-hero news-hero">
+        <p className="section-eyebrow">{t.newsEyebrow}</p>
+        <h2>{t.newsTitle}</h2>
+        <p className="thesis-lede">{t.newsIntro}</p>
+        <p className="news-disclaimer">{t.newsDisclaimer}</p>
+      </section>
+
+      <section className="news-list" aria-label={t.newsTitle}>
+        {NEWS_ITEMS.map((item) => (
+          <article className="news-card" key={item.id}>
+            <div className="news-card-meta">
+              <span>{t.newsDate}: {fmtDate(new Date(`${item.date}T00:00:00`), lang)}</span>
+              <span>{t.newsSource}: {item.source}</span>
+              {item.author ? <span>{item.author}</span> : null}
+            </div>
+            <h3>{item.title[lang]}</h3>
+            <p>{item.summary[lang]}</p>
+            <div className="news-readthrough">
+              <strong>{t.newsWhyItMatters}</strong>
+              <p>{item.readThrough[lang]}</p>
+            </div>
+            <div className="news-card-footer">
+              <div className="news-tags">
+                {item.tags.map((tag) => <span key={tag}>{tag}</span>)}
+              </div>
+              <a href={item.url} target="_blank" rel="noopener noreferrer">{t.newsOpenArticle}</a>
+            </div>
+          </article>
+        ))}
+      </section>
+    </div>
   );
 }
 
@@ -815,6 +900,16 @@ function fmtPctPoint(value) {
   return `${value.toFixed(Math.abs(value) >= 10 ? 0 : 1)}%`;
 }
 
+const ES_MONTHS_SHORT = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+
+function localizeMonthLabel(label, t) {
+  if (!label || !t?.monthsShort) return label;
+  return String(label).replace(/ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic|Ene|Feb|Mar|Abr|May|Jun|Jul|Ago|Sep|Oct|Nov|Dic/g, (match) => {
+    const index = ES_MONTHS_SHORT.findIndex((month) => month.toLowerCase() === match.toLowerCase());
+    return index >= 0 ? t.monthsShort[index] : match;
+  });
+}
+
 function useHashRoute() {
   const readRoute = () => {
     const rawRoute = window.location.hash.replace(/^#\/?/, "") || "dashboard";
@@ -835,9 +930,15 @@ function useHashRoute() {
 function parseLocalizedRoute(route) {
   const isEnglish = route === "en" || route.startsWith("en/");
   const normalizedRoute = isEnglish ? route.replace(/^en\/?/, "") || "dashboard" : route;
+  const page =
+    normalizedRoute === "tesis"
+      ? "tesis"
+      : normalizedRoute === "noticias" || normalizedRoute === "news"
+        ? "noticias"
+        : "dashboard";
   return {
     lang: isEnglish ? "en" : "es",
-    page: normalizedRoute === "tesis" ? "tesis" : "dashboard",
+    page,
   };
 }
 
@@ -852,7 +953,7 @@ function MetricCard({ label, value, sub, delta, info, t }) {
     <article className="metric-card">
       <div className="metric-label-row">
         <span className="metric-label">{label}</span>
-        {info && <InfoTooltip>{info}</InfoTooltip>}
+        {info && <InfoTooltip label={t.moreInformation}>{info}</InfoTooltip>}
       </div>
       <strong className="metric-value">{value}</strong>
       <span className="metric-sub">{sub}</span>
@@ -861,7 +962,7 @@ function MetricCard({ label, value, sub, delta, info, t }) {
   );
 }
 
-function AumChart({ data }) {
+function AumChart({ data, t }) {
   const W = 1100;
   const H = 320;
   const pad = { top: 18, right: 28, bottom: 50, left: 90 };
@@ -891,7 +992,7 @@ function AumChart({ data }) {
   const yTicks = [0, 0.25, 0.5, 0.75, 1].map((ratio) => minVal + ratio * range);
   const xLabels = [];
   data.forEach((item, index) => {
-    if (item.label.startsWith("ene")) xLabels.push(index);
+    if (String(item.label).toLowerCase().startsWith("ene")) xLabels.push(index);
   });
   if (!xLabels.includes(data.length - 1)) xLabels.push(data.length - 1);
 
@@ -943,7 +1044,7 @@ function AumChart({ data }) {
 
       {xLabels.map((index) => (
         <text key={index} x={pointX(index).toFixed(1)} y={H - 8} textAnchor="middle" fontSize="12" fill="#A0AEC0">
-          {data[index].label}
+          {localizeMonthLabel(data[index].label, t)}
         </text>
       ))}
     </svg>
@@ -957,9 +1058,7 @@ const ARR_YOY_REFS = [
   { value: 0.60, label: "+60%", color: "#334155" },
 ];
 
-const MONTH_LABELS_SHORT = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
-
-function ArrYoYChart({ data }) {
+function ArrYoYChart({ data, t }) {
   const W = 1100;
   const H = 310;
   const pad = { top: 26, right: 100, bottom: 56, left: 72 };
@@ -1017,7 +1116,7 @@ function ArrYoYChart({ data }) {
       if (ms >= startMs) {
         monthMarks.push({
           x: pxMs(ms),
-          label: MONTH_LABELS_SHORT[d.getMonth()],
+          label: t.monthsShort[d.getMonth()],
           isJan: d.getMonth() === 0,
           year: d.getFullYear(),
           month: d.getMonth(),
@@ -1027,8 +1126,8 @@ function ArrYoYChart({ data }) {
     }
   }
 
-  const baseLabel  = `${MONTH_LABELS_SHORT[lastDate.getMonth()]} ${lastDate.getFullYear() - 1}`;
-  const todayLabel = `${MONTH_LABELS_SHORT[lastDate.getMonth()]} ${lastDate.getFullYear()}`;
+  const baseLabel  = `${t.monthsShort[lastDate.getMonth()]} ${lastDate.getFullYear() - 1}`;
+  const todayLabel = `${t.monthsShort[lastDate.getMonth()]} ${lastDate.getFullYear()}`;
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="chart-svg">
@@ -1114,9 +1213,7 @@ const YEARLY_PALETTE = [
   { year: 2025, color: "#34D399", width: 2 },
   { year: 2026, color: "#22c55e", width: 2.5 },
 ];
-const MONTH_LABELS = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
-
-function ArrYearlyIndexChart({ data }) {
+function ArrYearlyIndexChart({ data, t }) {
   const W = 1100;
   const H = 320;
   const pad = { top: 24, right: 52, bottom: 50, left: 72 };
@@ -1164,7 +1261,7 @@ function ArrYearlyIndexChart({ data }) {
           </text>
         </g>
       ))}
-      {MONTH_LABELS.map((label, i) => {
+      {t.monthsShort.map((label, i) => {
         const x = px(i / 12).toFixed(1);
         return (
           <g key={label}>
@@ -1272,7 +1369,7 @@ function ReturnBarsChart({ annualReturns }) {
   );
 }
 
-function ReturnMonthlyHeatmap({ monthlyReturns }) {
+function ReturnMonthlyHeatmap({ monthlyReturns, t }) {
   if (!monthlyReturns?.length) return null;
 
   const retMap = new Map(monthlyReturns.map((r) => [`${r.year}-${r.month}`, r.return]));
@@ -1288,7 +1385,7 @@ function ReturnMonthlyHeatmap({ monthlyReturns }) {
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="chart-svg" style={{ marginTop: "8px" }}>
-      {MONTH_LABELS.map((label, i) => (
+      {t.monthsShort.map((label, i) => (
         <text key={label}
           x={(labelW + (i + 0.5) * cellW).toFixed(1)} y="18"
           textAnchor="middle" fontSize="11" fill="#718096" fontWeight="500">
@@ -1410,7 +1507,7 @@ function InflowsChart({ data }) {
   );
 }
 
-function SeasonalityChart({ data }) {
+function SeasonalityChart({ data, t }) {
   const W = 920;
   const H = 290;
   const pad = { top: 18, right: 20, bottom: 50, left: 62 };
@@ -1458,7 +1555,7 @@ function SeasonalityChart({ data }) {
         {data.series.map((serie, index) => (
           <span key={serie.label}>
             <i className="leg-dot" style={{ background: palette[index % palette.length] }} />
-            {serie.label}
+            {localizeMonthLabel(serie.label, t)}
           </span>
         ))}
       </div>
@@ -1511,7 +1608,7 @@ function SeasonalityChart({ data }) {
 
         {data.categories.map((label, index) => (
           <text key={label} x={pointX(index).toFixed(1)} y={H - 10} textAnchor="middle" fontSize="16" fill="#94A3B8">
-            {label}
+            {localizeMonthLabel(label, t)}
           </text>
         ))}
       </svg>
@@ -1844,7 +1941,7 @@ const CLIENTS_TARGETS = [
   { year: 2030, clients: 454000 },
 ];
 
-function ClientsChart({ data, t }) {
+function ClientsChart({ data, t, lang }) {
   const W = 1100, H = 280;
   const pad = { top: 28, right: 56, bottom: 44, left: 72 };
   const iW = W - pad.left - pad.right;
@@ -1943,7 +2040,7 @@ function ClientsChart({ data, t }) {
           <circle cx={pxMs(last.date.getTime()).toFixed(1)} cy={py(last.clients).toFixed(1)} r="5" fill="#0F766E" />
           <text x={(pxMs(last.date.getTime()) + 8).toFixed(1)} y={(py(last.clients) + 4).toFixed(1)}
             fontSize="12" fill="#0F766E" fontWeight="700">
-            {last.clients.toLocaleString("es-ES")}
+            {last.clients.toLocaleString(lang === "en" ? "en-GB" : "es-ES")}
           </text>
           {dailyAvg != null && dailyAvg > 0 && (
             <text x={(pxMs(last.date.getTime()) + 8).toFixed(1)} y={(py(last.clients) + 18).toFixed(1)}
@@ -2074,7 +2171,7 @@ function PeriodComparisonBars({ label, bars, t }) {
           <h2 className="comparison-title">{label}</h2>
           <p className="comparison-sub">{t.periodComparisonSub} {new Date().getFullYear()} {t.projected}</p>
         </div>
-        <InfoTooltip>
+        <InfoTooltip label={t.moreInformation}>
           {isMonthly ? (
             <>
               <p>{t.monthBarsInfo}</p>
@@ -2195,6 +2292,8 @@ export default function App() {
 
   const today = new Date();
   const isThesisPage = page === "tesis";
+  const isNewsPage = page === "noticias";
+  const activePage = isThesisPage ? "tesis" : isNewsPage ? "noticias" : "dashboard";
 
   return (
     <div className="app">
@@ -2203,15 +2302,17 @@ export default function App() {
         <div className="header-inner">
           <BrandSignature productName="Indexa Tracker" />
           <div className="header-actions">
-            <HeaderNav activePage={isThesisPage ? "tesis" : "dashboard"} lang={lang} t={t} />
-            <LanguageSwitch activePage={isThesisPage ? "tesis" : "dashboard"} lang={lang} t={t} />
+            <HeaderNav activePage={activePage} lang={lang} t={t} />
+            <LanguageSwitch activePage={activePage} lang={lang} t={t} />
           </div>
         </div>
       </header>
 
-      <main className={`app-main ${isThesisPage ? "app-main-thesis" : ""}`}>
+      <main className={`app-main ${isThesisPage || isNewsPage ? "app-main-thesis" : ""}`}>
         {isThesisPage ? (
           <InvestmentThesisPage today={today} lastDate={lastDate} lang={lang} />
+        ) : isNewsPage ? (
+          <NewsPage lang={lang} t={t} />
         ) : (
           <>
             <DashboardIntro today={today} lastDate={lastDate} lang={lang} t={t} />
@@ -2259,7 +2360,7 @@ export default function App() {
               <p>{t.arrYoySub}</p>
             </div>
           </div>
-          <ArrYoYChart data={arrYoySeries} />
+          <ArrYoYChart data={arrYoySeries} t={t} />
         </section>
 
         <section className="chart-section">
@@ -2272,7 +2373,7 @@ export default function App() {
               <p>{t.arrIndexedSub}</p>
             </div>
           </div>
-          <ArrYearlyIndexChart data={arrYearlyIndex} />
+          <ArrYearlyIndexChart data={arrYearlyIndex} t={t} />
         </section>
 
         <section className="chart-section">
@@ -2289,7 +2390,7 @@ export default function App() {
               <span><i className="leg-dash" />{t.ownReferenceLegend}</span>
             </div>
           </div>
-          <AumChart data={chartData} />
+          <AumChart data={chartData} t={t} />
         </section>
 
         {/* ── Fila 1: Histórico anual + histórico mensual ── */}
@@ -2329,7 +2430,7 @@ export default function App() {
                   <h2>{t.ytdComparisonTitle}</h2>
                   <InfoTooltip label={t.moreInformation}><p>{t.ytdComparisonInfo}</p></InfoTooltip>
                 </div>
-                <p>{t.ytdComparisonSubPrefix} {lastDate ? `${lastDate.getDate()} ${MONTH_LABELS[lastDate.getMonth()]}` : t.today} · {t.ytdComparisonSubSuffix}</p>
+                <p>{t.ytdComparisonSubPrefix} {lastDate ? `${lastDate.getDate()} ${t.monthsShort[lastDate.getMonth()]}` : t.today} · {t.ytdComparisonSubSuffix}</p>
               </div>
             </div>
             <StackedComparisonBarChart data={ytdComparison} />
@@ -2341,7 +2442,7 @@ export default function App() {
                   <h2>{t.mtdComparisonTitle}</h2>
                   <InfoTooltip label={t.moreInformation}><p>{t.mtdComparisonInfo}</p></InfoTooltip>
                 </div>
-                <p>{t.mtdComparisonSubPrefix}{lastDate?.getDate() ?? "?"} {lastDate ? MONTH_LABELS[lastDate.getMonth()] : "-"} · {t.mtdComparisonSubSuffix}</p>
+                <p>{t.mtdComparisonSubPrefix}{lastDate?.getDate() ?? "?"} {lastDate ? t.monthsShort[lastDate.getMonth()] : "-"} · {t.mtdComparisonSubSuffix}</p>
               </div>
             </div>
             <StackedComparisonBarChart data={mtdComparison} />
@@ -2361,7 +2462,7 @@ export default function App() {
                 <p>{t.monthlySeasonalitySub}</p>
               </div>
             </div>
-            <SeasonalityChart data={seasonalityMonthly} />
+            <SeasonalityChart data={seasonalityMonthly} t={t} />
             <p className="chart-note">
               {t.monthlySeasonalityNote}
             </p>
@@ -2377,7 +2478,7 @@ export default function App() {
                 <p>{t.quarterlySeasonalitySub}</p>
               </div>
             </div>
-            <SeasonalityChart data={seasonalityQuarterly} />
+            <SeasonalityChart data={seasonalityQuarterly} t={t} />
             <p className="chart-note">
               {t.quarterlySeasonalityNote}
             </p>
@@ -2399,7 +2500,7 @@ export default function App() {
                 </p>
               </div>
             </div>
-            <ClientsChart data={dataset.clientsHistory} t={t} />
+            <ClientsChart data={dataset.clientsHistory} t={t} lang={lang} />
           </section>
         )}
 
@@ -2422,7 +2523,7 @@ export default function App() {
             </div>
             <ReturnBarsChart annualReturns={twrData.annualReturns.filter((r) => r.year >= 2021)} />
             <p className="chart-note" style={{ marginTop: 16, marginBottom: 4 }}>{t.monthlyBreakdownNote}</p>
-            <ReturnMonthlyHeatmap monthlyReturns={twrData.monthlyReturns.filter((r) => r.year >= 2021)} />
+            <ReturnMonthlyHeatmap monthlyReturns={twrData.monthlyReturns.filter((r) => r.year >= 2021)} t={t} />
             <p className="chart-note">{t.currentYearPartialNote}</p>
           </section>
         )}

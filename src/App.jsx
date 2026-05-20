@@ -590,8 +590,20 @@ function NewsPage({ lang, t }) {
   );
 }
 
+const GVC_RESEARCH_DOCS = {
+  es: {
+    complete: "https://group.indexacapital.com/es/view-document/3ce5e4a4-3716-11f1-ac7d-0a0c9f6e68d1/An%C3%A1lisis%20burs%C3%A1til",
+    q1: "https://group.indexacapital.com/es/view-document/66a55b48-4919-11f1-96c8-02a2ab306df7/An%C3%A1lisis%20burs%C3%A1til",
+  },
+  en: {
+    complete: "https://group.indexacapital.com/es/view-document/ddd69f4c-373a-11f1-8bf9-0a0c9f6e68d1/An%C3%A1lisis%20burs%C3%A1til",
+    q1: "https://group.indexacapital.com/es/view-document/c668d820-4919-11f1-8bb2-02a2ab306df7/An%C3%A1lisis%20burs%C3%A1til",
+  },
+};
+
 function InvestmentThesisPage({ today, lastDate, lang }) {
   const isEnglish = lang === "en";
+  const researchDocs = GVC_RESEARCH_DOCS[lang];
   const thesisMetrics = isEnglish
     ? [
         { label: "2025 AUM", value: "EUR 4,403m", note: "audited 2025 year-end" },
@@ -664,6 +676,41 @@ function InvestmentThesisPage({ today, lastDate, lang }) {
 
   return (
     <div className="thesis-page">
+      <section className="research-starter">
+        <div className="research-starter-copy">
+          <span className="section-eyebrow">
+            {isEnglish ? "Start here" : "Empieza aqui"}
+          </span>
+          <h2>
+            {isEnglish
+              ? "The most complete research document to understand Indexa"
+              : "El documento mas completo para empezar a investigar Indexa"}
+          </h2>
+          <p>
+            {isEnglish
+              ? "GVC Gaesco's full initiation report is the best starting point for understanding the company, its history, business model, market context, competitive position and listed-equity case. This page is an editorial tracker, but the full PDF is where most of the foundational research sits."
+              : "El informe completo de GVC Gaesco es el mejor punto de partida para entender la empresa, su historia, modelo de negocio, contexto de mercado, posicion competitiva y caso bursatil. Esta pagina ordena la tesis editorial, pero el PDF completo concentra gran parte de la investigacion base."}
+          </p>
+          <div className="research-starter-actions">
+            <a className="research-primary-link" href={researchDocs.complete} target="_blank" rel="noopener noreferrer">
+              {isEnglish ? "Open full GVC Gaesco thesis" : "Abrir tesis completa de GVC Gaesco"}
+            </a>
+            <a className="research-secondary-link" href={researchDocs.q1} target="_blank" rel="noopener noreferrer">
+              {isEnglish ? "Open Q1 update" : "Abrir actualizacion T1"}
+            </a>
+          </div>
+        </div>
+        <div className="research-starter-panel">
+          <strong>{isEnglish ? "What you will find" : "Que encontraras"}</strong>
+          <ul>
+            <li>{isEnglish ? "Company history and positioning" : "Historia y posicionamiento de la compania"}</li>
+            <li>{isEnglish ? "Market, competitors and growth drivers" : "Mercado, competidores y motores de crecimiento"}</li>
+            <li>{isEnglish ? "Financial model, estimates and valuation case" : "Modelo financiero, estimaciones y caso de valoracion"}</li>
+            <li>{isEnglish ? "Risks, assumptions and follow-up metrics" : "Riesgos, hipotesis y metricas de seguimiento"}</li>
+          </ul>
+        </div>
+      </section>
+
       <section className="thesis-hero">
         <p className="section-eyebrow">
           {isEnglish ? "Investment thesis · editorial draft" : "Tesis de inversión · borrador editorial"}

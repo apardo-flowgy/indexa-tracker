@@ -1176,6 +1176,14 @@ function ArrYoYChart({ data, t }) {
   const baseLabel  = `${t.monthsShort[lastDate.getMonth()]} ${lastDate.getFullYear() - 1}`;
   const todayLabel = `${t.monthsShort[lastDate.getMonth()]} ${lastDate.getFullYear()}`;
 
+  // ── YTD average ──────────────────────────────────────────────────────────
+  const currentYear  = lastDate.getFullYear();
+  const ytdData      = data.filter((d) => d.date.getFullYear() === currentYear);
+  const ytdAvg       = ytdData.length ? ytdData.reduce((s, d) => s + d.yoy, 0) / ytdData.length : null;
+  const ytdStartMs   = new Date(currentYear, 0, 1).getTime();
+  const xYtdStart    = Math.max(pxMs(ytdStartMs), pad.left);
+  const xYtdEnd      = px(last);
+
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="chart-svg">
       {/* Last-12-months highlight band */}
@@ -1206,6 +1214,23 @@ function ArrYoYChart({ data, t }) {
           </g>
         );
       })}
+
+      {/* YTD average line */}
+      {ytdAvg !== null && (
+        <g>
+          <line
+            x1={xYtdStart.toFixed(1)} y1={py(ytdAvg).toFixed(1)}
+            x2={xYtdEnd.toFixed(1)}  y2={py(ytdAvg).toFixed(1)}
+            stroke="#3B82F6" strokeWidth="1.5" strokeDasharray="6 3"
+          />
+          <text
+            x={(xYtdStart + 4).toFixed(1)} y={(py(ytdAvg) - 5).toFixed(1)}
+            fontSize="10" fill="#3B82F6" fontWeight="600"
+          >
+            Ø YTD {currentYear}: {(ytdAvg * 100).toFixed(1)}%
+          </text>
+        </g>
+      )}
 
       {/* Vertical line at base-12 (start of comparison window) */}
       <line x1={xBase12.toFixed(1)} y1={pad.top} x2={xBase12.toFixed(1)} y2={pad.top + iH}

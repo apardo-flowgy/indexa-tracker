@@ -1216,21 +1216,37 @@ function ArrYoYChart({ data, t }) {
       })}
 
       {/* YTD average line */}
-      {ytdAvg !== null && (
-        <g>
-          <line
-            x1={xYtdStart.toFixed(1)} y1={py(ytdAvg).toFixed(1)}
-            x2={xYtdEnd.toFixed(1)}  y2={py(ytdAvg).toFixed(1)}
-            stroke="#3B82F6" strokeWidth="1.5" strokeDasharray="6 3"
-          />
-          <text
-            x={(xYtdStart + 4).toFixed(1)} y={(py(ytdAvg) - 5).toFixed(1)}
-            fontSize="10" fill="#3B82F6" fontWeight="600"
-          >
-            Ø YTD {currentYear}: {(ytdAvg * 100).toFixed(1)}%
-          </text>
-        </g>
-      )}
+      {ytdAvg !== null && (() => {
+        const lineY = py(ytdAvg);
+        // Find the best gap on the right margin that fits a 2-line label (needs ≥24px clear)
+        const refYs = [...ARR_YOY_REFS.map((r) => py(r.value) + 4)].sort((a, b) => a - b);
+        const bounds = [pad.top + 4, ...refYs, pad.top + iH - 4];
+        let slotStart = null, bestDist = Infinity;
+        for (let i = 0; i < bounds.length - 1; i++) {
+          const top = bounds[i] + 9;
+          const bot = bounds[i + 1] - 9;
+          if (bot - top >= 24) {
+            const dist = Math.abs((top + bot) / 2 - lineY);
+            if (dist < bestDist) { bestDist = dist; slotStart = top; }
+          }
+        }
+        if (slotStart === null) slotStart = pad.top + iH - 28;
+        return (
+          <g>
+            <line
+              x1={xYtdStart.toFixed(1)} y1={lineY.toFixed(1)}
+              x2={xYtdEnd.toFixed(1)}  y2={lineY.toFixed(1)}
+              stroke="#3B82F6" strokeWidth="1.5" strokeDasharray="6 3"
+            />
+            <text x={xEnd + 6} y={(slotStart + 10).toFixed(1)} fontSize="10" fill="#3B82F6" fontWeight="600">
+              Ø YTD {currentYear}
+            </text>
+            <text x={xEnd + 6} y={(slotStart + 23).toFixed(1)} fontSize="12" fill="#3B82F6" fontWeight="700">
+              {(ytdAvg * 100).toFixed(1)}%
+            </text>
+          </g>
+        );
+      })()}
 
       {/* Vertical line at base-12 (start of comparison window) */}
       <line x1={xBase12.toFixed(1)} y1={pad.top} x2={xBase12.toFixed(1)} y2={pad.top + iH}

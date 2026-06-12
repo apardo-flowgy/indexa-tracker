@@ -412,6 +412,118 @@ button, input { font: inherit; cursor: pointer; }
   color: var(--muted);
 }
 
+.client-analytics {
+  margin-top: 26px;
+  border-top: 1px solid var(--border);
+  padding-top: 24px;
+}
+
+.client-analytics .chart-title-row h3 {
+  font-size: 1rem;
+  line-height: 1.25;
+}
+
+.client-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  margin: 16px 0 22px;
+}
+
+.client-kpi-card,
+.client-year-card,
+.client-detail-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #F8FAFC;
+}
+
+.client-kpi-card,
+.client-year-card {
+  padding: 13px;
+}
+
+.client-kpi-card span,
+.client-year-card span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 7px;
+}
+
+.client-kpi-card strong,
+.client-year-card strong {
+  display: block;
+  font-size: 1.2rem;
+  line-height: 1.15;
+}
+
+.client-kpi-card p,
+.client-year-card p {
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.4;
+  margin-top: 7px;
+}
+
+.client-annual-grid h4,
+.client-detail-card h4 {
+  font-size: 0.86rem;
+  margin-bottom: 12px;
+}
+
+.client-year-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.client-detail-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.55fr);
+  gap: 18px;
+  margin-top: 22px;
+}
+
+.client-detail-card {
+  padding: 18px;
+  background: #FFFFFF;
+}
+
+.client-week-table-wrap {
+  overflow-x: auto;
+}
+
+.client-week-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.client-week-table th,
+.client-week-table td {
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  padding: 9px 8px;
+  white-space: nowrap;
+}
+
+.client-week-table th {
+  color: var(--muted);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.client-week-table tr:last-child td {
+  border-bottom: none;
+}
+
 /* ── History / table panel ── */
 .history-section {
   background: var(--panel);
@@ -1201,6 +1313,9 @@ button, input { font: inherit; cursor: pointer; }
 @media (max-width: 800px) {
   .status-grid  { grid-template-columns: 1fr; }
   .seasonality-grid { grid-template-columns: 1fr; }
+  .client-kpi-grid,
+  .client-year-grid,
+  .client-detail-grid { grid-template-columns: 1fr; }
   .dashboard-intro { grid-template-columns: 1fr; }
   .context-band { flex-direction: column; }
   .context-dates { min-width: 0; }

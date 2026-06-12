@@ -129,6 +129,22 @@ const I18N = {
     clientsInfo: "Numero de clientes publicado en la pagina de testimonios de Indexa Capital, capturado automaticamente varias veces al dia. La linea gris muestra la estimacion de GVC Gaesco hasta 2030, no una guia oficial de Indexa.",
     currentClients: "Clientes actuales",
     dataSince: "Datos desde",
+    clientsDeepDiveTitle: "Clientes: ritmo diario y tendencia semanal",
+    clientsDeepDiveInfo: "El historico anual permite ver el salto estructural de clientes desde 2021. Desde el 15-05-2026 el seguimiento pasa a ser diario, lo que permite medir altas netas por dia y suavizarlas con medias semanales.",
+    clientsAnnualSubtitle: "Hitos anuales y dato parcial 2026",
+    clientsDailySubtitle: "Altas netas diarias desde el 15-05-2026",
+    clientsWeeklySubtitle: "Resumen semanal desde que hay datos diarios",
+    clientsSinceDailyStart: "Desde inicio diario",
+    clientsAvgSinceStart: "Media diaria desde inicio",
+    clientsAvg7d: "Media 7 dias",
+    clientsAvg30d: "Media 30 dias",
+    clientsNetAdds: "Altas netas",
+    clientsAvgPerDay: "Media/dia",
+    clientsDays: "Dias",
+    clientsPeriod: "Periodo",
+    clientsPartialYear: "2026 parcial",
+    clientsAnnualGrowth: "Crecimiento",
+    clientsDailyStartNote: "Base diaria",
     perDay: "dia",
     lastDays: "ult.",
     real: "Real",
@@ -286,6 +302,22 @@ const I18N = {
     clientsInfo: "Number of clients published on Indexa Capital's testimonials page, captured automatically several times per day. The grey line shows GVC Gaesco's estimate to 2030, not official Indexa guidance.",
     currentClients: "Current clients",
     dataSince: "Data since",
+    clientsDeepDiveTitle: "Clients: daily pace and weekly trend",
+    clientsDeepDiveInfo: "The annual history shows the structural growth in clients since 2021. From 15 May 2026, tracking becomes daily, making it possible to measure net client additions per day and smooth them with weekly averages.",
+    clientsAnnualSubtitle: "Annual milestones and partial 2026 data",
+    clientsDailySubtitle: "Daily net additions since 15 May 2026",
+    clientsWeeklySubtitle: "Weekly summary since daily data started",
+    clientsSinceDailyStart: "Since daily start",
+    clientsAvgSinceStart: "Daily average since start",
+    clientsAvg7d: "7-day average",
+    clientsAvg30d: "30-day average",
+    clientsNetAdds: "Net additions",
+    clientsAvgPerDay: "Average/day",
+    clientsDays: "Days",
+    clientsPeriod: "Period",
+    clientsPartialYear: "Partial 2026",
+    clientsAnnualGrowth: "Growth",
+    clientsDailyStartNote: "Daily base",
     perDay: "day",
     lastDays: "last",
     real: "Actual",
@@ -2028,6 +2060,112 @@ const CLIENTS_TARGETS = [
   { year: 2029, clients: 366000 },
   { year: 2030, clients: 454000 },
 ];
+const CLIENTS_DAILY_START = "2026-05-15";
+
+function dateKey(date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function daysBetween(start, end) {
+  return Math.max(1, Math.round((end - start) / (24 * 60 * 60 * 1000)));
+}
+
+function avgLast(items, count) {
+  const sample = items.slice(-count);
+  if (!sample.length) return null;
+  return sample.reduce((sum, item) => sum + item.delta, 0) / sample.length;
+}
+
+function mondayOf(date) {
+  const d = new Date(date);
+  const day = (d.getDay() + 6) % 7;
+  d.setDate(d.getDate() - day);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function buildClientAnalytics(data) {
+  const rows = [...(data ?? [])].sort((a, b) => a.date - b.date);
+  const dailyStartIndex = rows.findIndex((row) => dateKey(row.date) === CLIENTS_DAILY_START);
+  const dailyStart = dailyStartIndex >= 0 ? rows[dailyStartIndex] : rows.find((row) => row.date.getFullYear() >= 2026);
+  const latest = rows.at(-1);
+
+  const annualRows = CLIENTS_ANNUAL.map((row, index) => {
+    const prev = CLIENTS_ANNUAL[index - 1];
+    return {
+      ...row,
+      label: String(row.year),
+      delta: prev ? row.clients - prev.clients : null,
+      growth: prev ? row.clients / prev.clients - 1 : null,
+      isPartial: false,
+    };
+  });
+
+  if (latest && latest.date.getFullYear() === 2026) {
+    const prev = CLIENTS_ANNUAL.at(-1);
+    annualRows.push({
+      year: 2026,
+      label: "2026",
+      clients: latest.clients,
+      delta: latest.clients - prev.clients,
+      growth: latest.clients / prev.clients - 1,
+      isPartial: true,
+      date: latest.date,
+    });
+  }
+
+  const dailyRows = [];
+  if (dailyStartIndex >= 0) {
+    for (let i = dailyStartIndex + 1; i < rows.length; i += 1) {
+      const prev = rows[i - 1];
+      const row = rows[i];
+      const days = daysBetween(prev.date, row.date);
+      dailyRows.push({
+        date: row.date,
+        clients: row.clients,
+        delta: row.clients - prev.clients,
+        avgPerDay: (row.clients - prev.clients) / days,
+        days,
+      });
+    }
+  }
+
+  const weekMap = new Map();
+  dailyRows.forEach((row) => {
+    const weekStart = mondayOf(row.date);
+    const key = dateKey(weekStart);
+    const current = weekMap.get(key) ?? {
+      key,
+      start: weekStart,
+      end: row.date,
+      delta: 0,
+      days: 0,
+    };
+    current.end = row.date > current.end ? row.date : current.end;
+    current.delta += row.delta;
+    current.days += row.days;
+    weekMap.set(key, current);
+  });
+
+  const weeklyRows = [...weekMap.values()]
+    .sort((a, b) => a.start - b.start)
+    .map((row) => ({ ...row, avgPerDay: row.delta / Math.max(1, row.days) }));
+
+  const netSinceStart = latest && dailyStart ? latest.clients - dailyStart.clients : null;
+  const daysSinceStart = latest && dailyStart ? daysBetween(dailyStart.date, latest.date) : null;
+
+  return {
+    latest,
+    dailyStart,
+    annualRows,
+    dailyRows,
+    weeklyRows,
+    netSinceStart,
+    avgSinceStart: netSinceStart != null && daysSinceStart ? netSinceStart / daysSinceStart : null,
+    avg7d: avgLast(dailyRows, 7),
+    avg30d: avgLast(dailyRows, 30),
+  };
+}
 
 function ClientsChart({ data, t, lang }) {
   const W = 1100, H = 280;
@@ -2147,6 +2285,147 @@ function ClientsChart({ data, t, lang }) {
         <text x="88" y="4" fontSize="10" fill="#A0AEC0">{t.gvcEstimate}</text>
       </g>
     </svg>
+  );
+}
+
+function ClientsDailyAddsChart({ data, t, lang }) {
+  const W = 1100, H = 250;
+  const pad = { top: 24, right: 24, bottom: 48, left: 70 };
+  const iW = W - pad.left - pad.right;
+  const iH = H - pad.top - pad.bottom;
+  if (!data?.length) return null;
+
+  const minVal = Math.min(0, ...data.map((row) => row.delta)) * 1.15;
+  const maxVal = Math.max(0, ...data.map((row) => row.delta)) * 1.15;
+  const range = maxVal - minVal || 1;
+  const slotW = iW / data.length;
+  const barW = Math.max(10, Math.min(36, slotW * 0.58));
+  const yScale = (value) => pad.top + iH * (1 - (value - minVal) / range);
+  const zeroY = yScale(0);
+  const xCenter = (index) => pad.left + (index + 0.5) * slotW;
+  const yTicks = [0, 0.5, 1].map((ratio) => minVal + ratio * range);
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="chart-svg">
+      {yTicks.map((value, index) => (
+        <g key={index}>
+          <line x1={pad.left} y1={yScale(value).toFixed(1)} x2={W - pad.right} y2={yScale(value).toFixed(1)}
+            stroke="#E2E8F0" strokeWidth="1" />
+          <text x={pad.left - 8} y={(yScale(value) + 4).toFixed(1)} textAnchor="end" fontSize="12" fill="#A0AEC0">
+            {Math.round(value)}
+          </text>
+        </g>
+      ))}
+      <line x1={pad.left} y1={zeroY.toFixed(1)} x2={W - pad.right} y2={zeroY.toFixed(1)} stroke="#94A3B8" strokeWidth="0.9" />
+      {data.map((row, index) => {
+        const cx = xCenter(index);
+        const y = row.delta >= 0 ? yScale(row.delta) : zeroY;
+        const h = Math.max(2, Math.abs(yScale(row.delta) - zeroY));
+        const fill = row.delta >= 0 ? "#0F766E" : "#DC2626";
+        return (
+          <g key={dateKey(row.date)}>
+            <rect x={(cx - barW / 2).toFixed(1)} y={y.toFixed(1)} width={barW.toFixed(1)} height={h.toFixed(1)}
+              fill={fill} opacity="0.84" rx="3" />
+            <text x={cx.toFixed(1)} y={(row.delta >= 0 ? y - 6 : y + h + 14).toFixed(1)}
+              textAnchor="middle" fontSize="10" fill={fill} fontWeight="700">
+              {row.delta >= 0 ? "+" : ""}{row.delta}
+            </text>
+            <text x={cx.toFixed(1)} y={H - 12} textAnchor="middle" fontSize="10" fill="#94A3B8">
+              {row.date.toLocaleDateString(lang === "en" ? "en-GB" : "es-ES", { day: "2-digit", month: "short" })}
+            </text>
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+function ClientAnalyticsSection({ data, t, lang }) {
+  const analytics = buildClientAnalytics(data);
+  if (!analytics.latest || !analytics.dailyStart) return null;
+  const locale = lang === "en" ? "en-GB" : "es-ES";
+  const numberFmt = new Intl.NumberFormat(locale);
+  const signedFmt = (value, digits = 0) =>
+    value == null ? "-" : `${value >= 0 ? "+" : ""}${new Intl.NumberFormat(locale, { maximumFractionDigits: digits }).format(value)}`;
+  const dateFmt = (date) => date.toLocaleDateString(locale, { day: "numeric", month: "short", year: "numeric" });
+
+  const metricCards = [
+    { label: t.currentClients, value: numberFmt.format(analytics.latest.clients), note: dateFmt(analytics.latest.date) },
+    { label: t.clientsSinceDailyStart, value: signedFmt(analytics.netSinceStart), note: `${t.clientsDailyStartNote}: ${dateFmt(analytics.dailyStart.date)}` },
+    { label: t.clientsAvgSinceStart, value: signedFmt(analytics.avgSinceStart, 1), note: t.perDay },
+    { label: t.clientsAvg7d, value: signedFmt(analytics.avg7d, 1), note: t.perDay },
+    { label: t.clientsAvg30d, value: signedFmt(analytics.avg30d, 1), note: t.perDay },
+  ];
+
+  return (
+    <div className="client-analytics">
+      <div className="chart-title-row">
+        <h3>{t.clientsDeepDiveTitle}</h3>
+        <InfoTooltip label={t.moreInformation}><p>{t.clientsDeepDiveInfo}</p></InfoTooltip>
+      </div>
+      <div className="client-kpi-grid">
+        {metricCards.map((card) => (
+          <article className="client-kpi-card" key={card.label}>
+            <span>{card.label}</span>
+            <strong>{card.value}</strong>
+            <p>{card.note}</p>
+          </article>
+        ))}
+      </div>
+
+      <div className="client-annual-grid">
+        <div>
+          <h4>{t.clientsAnnualSubtitle}</h4>
+          <div className="client-year-grid">
+            {analytics.annualRows.map((row) => (
+              <article className="client-year-card" key={`${row.year}-${row.isPartial ? "partial" : "full"}`}>
+                <span>{row.isPartial ? t.clientsPartialYear : row.label}</span>
+                <strong>{numberFmt.format(row.clients)}</strong>
+                <p>
+                  {row.delta == null
+                    ? "-"
+                    : `${signedFmt(row.delta)} · ${t.clientsAnnualGrowth}: ${percent.format(row.growth)}`}
+                </p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {analytics.dailyRows.length > 0 && (
+        <div className="client-detail-grid">
+          <article className="client-detail-card wide">
+            <h4>{t.clientsDailySubtitle}</h4>
+            <ClientsDailyAddsChart data={analytics.dailyRows} t={t} lang={lang} />
+          </article>
+          <article className="client-detail-card">
+            <h4>{t.clientsWeeklySubtitle}</h4>
+            <div className="client-week-table-wrap">
+              <table className="client-week-table">
+                <thead>
+                  <tr>
+                    <th>{t.clientsPeriod}</th>
+                    <th>{t.clientsNetAdds}</th>
+                    <th>{t.clientsAvgPerDay}</th>
+                    <th>{t.clientsDays}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {analytics.weeklyRows.map((week) => (
+                    <tr key={week.key}>
+                      <td>{dateFmt(week.start)} - {dateFmt(week.end)}</td>
+                      <td>{signedFmt(week.delta)}</td>
+                      <td>{signedFmt(week.avgPerDay, 1)}</td>
+                      <td>{week.days}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </article>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -2589,6 +2868,7 @@ export default function App() {
               </div>
             </div>
             <ClientsChart data={dataset.clientsHistory} t={t} lang={lang} />
+            <ClientAnalyticsSection data={dataset.clientsHistory} t={t} lang={lang} />
           </section>
         )}
 

@@ -11,26 +11,21 @@ const downloads = [
   {
     stat: "volume",
     filename: "indexa_stats_volume.csv",
-    expectedHeaderTokens: ["fecha", "volumen", "aportaciones netas", "acumuladas"]
+    // Indexa localiza las cabeceras (ES/FR/EN seg\u00fan su servidor, ignorando el
+    // locale de la URL), pero las columnas son estables por posici\u00f3n. Guardamos
+    // siempre esta cabecera can\u00f3nica en espa\u00f1ol, que es la que espera src/data.js.
+    canonicalHeader: 'Fecha;"Volumen (\u20ac)";"Aportaciones netas (d\u00eda, \u20ac)";"Aportaciones netas acumuladas (\u20ac)"',
+    expectedColumns: 4
   },
   {
     stat: "revenue",
     filename: "indexa_stats_revenue.csv",
-    expectedHeaderTokens: ["fecha", "volumen", "ingresos diarios recurrentes", "ingresos anuales recurrentes", "comision media anual"]
+    canonicalHeader: 'Fecha;"Volumen (\u20ac)";"Ingresos diarios recurrentes (\u20ac, sin IVA)";"Ingresos anuales recurrentes (\u20ac, sin IVA)";"Comisi\u00f3n media anual (%, sin IVA)"',
+    expectedColumns: 5
   }
 ];
 
-function normalizeHeaderLine(value) {
-  return String(value)
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^(A-Za-z0-9_;"\s-)]/g, "")
-    .replace(/\s+/g, " ")
-    .trim()
-    .toLowerCase();
-}
-
-async function downloadCsv({ stat, filename, expectedHeaderTokens }) {
+async function downloadCsv({ stat, filename, canonicalHeader, expectedColumns }) {
   const url = `https://indexacapital.com/es/esp/stats/download?stat=${stat}`;
   const response = await fetch(url, {
     headers: {
@@ -48,19 +43,29 @@ async function downloadCsv({ stat, filename, expectedHeaderTokens }) {
   }
 
   const content = await response.text();
-  const [firstLine = ""] = content.split(/\r?\n/, 1);
-  const normalizedHeader = normalizeHeaderLine(firstLine);
-  const hasExpectedHeader = expectedHeaderTokens.every((token) => normalizedHeader.includes(token));
-  if (!hasExpectedHeader) {
-    throw new Error(`Cabecera CSV no esperada para ${stat}`);
+  const lines = content.split(/\r?\n/);
+
+  // Validaci\u00f3n estructural (independiente del idioma de la cabecera): n\u00famero de
+  // columnas correcto y una primera fila de datos con fecha YYYY-MM-DD.
+  const headerColumns = (lines[0] ?? "").split(";").length;
+  if (headerColumns !== expectedColumns) {
+    throw new Error(`Estructura CSV inesperada para ${stat}: ${headerColumns} columnas (esperadas ${expectedColumns})`);
   }
+  const firstDataRow = lines[1] ?? "";
+  if (!/^\d{4}-\d{2}-\d{2};/.test(firstDataRow)) {
+    throw new Error(`Primera fila de datos inesperada para ${stat}: "${firstDataRow.slice(0, 40)}"`);
+  }
+
+  // Reescribe la cabecera al formato can\u00f3nico para desacoplarse del idioma que
+  // devuelva Indexa; el resto del contenido se conserva \u00edntegro.
+  const normalizedContent = [canonicalHeader, ...lines.slice(1)].join("\n");
 
   const targetPath = path.join(dataDir, filename);
   const tmpPath = `${targetPath}.tmp`;
-  await writeFile(tmpPath, content, "utf8");
+  await writeFile(tmpPath, normalizedContent, "utf8");
   await rename(tmpPath, targetPath);
 
-  const rowCount = Math.max(content.trim().split(/\r?\n/).length - 1, 0);
+  const rowCount = Math.max(normalizedContent.trim().split(/\r?\n/).length - 1, 0);
   console.log(`${filename}: ${rowCount} filas actualizadas`);
 }
 

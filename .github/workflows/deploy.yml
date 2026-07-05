@@ -14,7 +14,9 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: true
+  # No cancelar despliegues en curso: cancelar un deploy de Pages a mitad
+  # provoca fallos intermitentes en actions/deploy-pages (recomendación oficial).
+  cancel-in-progress: false
 
 jobs:
   build-and-deploy:
@@ -23,9 +25,9 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 20
           cache: npm

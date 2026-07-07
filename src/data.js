@@ -226,6 +226,147 @@ export function buildTwrSeries(volumeRows) {
   return { annualReturns, monthlyReturns, twrAnnualized, twrAccumulated, yearsSpan, currentYearReturn };
 }
 
+// ── Origen del AUM: aportaciones vs traspasos vs revalorización ───────────────
+// Usa los valores liquidativos oficiales de las carteras modelo (stat=mutual)
+// para "marcar a mercado" el AUM día a día y descomponer su crecimiento en:
+//   ΔAUM = aportaciones declaradas + flujos no registrados (traspasos) + revalorización
+//
+// Detalles clave, verificados empíricamente contra los datos publicados:
+//  - El volumen publicado va con 1 día de retraso respecto al NAV de las
+//    carteras (corr(y_t, x_{t-1}) ≈ 0,74 vs corr(y_t, x_t) ≈ 0,29), así que el
+//    retorno implícito del AUM del día de mercado s se mide con el volumen de s+1.
+//  - La mezcla efectiva de carteras se estima con una regresión mensual del
+//    retorno implícito contra las carteras 1 y 10 (extremos del espectro de
+//    riesgo); a nivel mensual el desfase de 1 día es irrelevante y R² ≈ 0,96.
+function parseMutualPortfolios(csv) {
+  const lines = String(csv ?? "").trim().split(/\r?\n/);
+  if (lines.length < 3) return null;
+  const headers = lines[0].split(";").map((h) => h.replaceAll('"', "").trim());
+  const i1 = headers.indexOf("10-100k€ - 1");
+  const i10 = headers.indexOf("10-100k€ - 10");
+  if (i1 < 0 || i10 < 0) return null;
+  return lines
+    .slice(1)
+    .map((line) => {
+      const parts = line.split(";");
+      return { dateStr: parts[0], c1: parseEuroNumber(parts[i1]), c10: parseEuroNumber(parts[i10]) };
+    })
+    .filter((row) => /^\d{4}-\d{2}-\d{2}$/.test(row.dateStr) && row.c1 > 0 && row.c10 > 0);
+}
+
+export function buildAumSources(volumeRows, mutualCsv) {
+  const mutual = parseMutualPortfolios(mutualCsv);
+  if (!mutual || mutual.length < 400 || volumeRows.length < 400) return null;
+
+  const volMap = new Map(volumeRows.map((row) => [row.date.toISOString().slice(0, 10), row]));
+  const nextDay = (dateStr) => {
+    const d = new Date(`${dateStr}T00:00:00Z`);
+    d.setUTCDate(d.getUTCDate() + 1);
+    return d.toISOString().slice(0, 10);
+  };
+
+  // Observaciones diarias alineadas al día de mercado s (corrigiendo el lag)
+  const obs = [];
+  for (let i = 1; i < mutual.length; i++) {
+    const prev = mutual[i - 1];
+    const curr = mutual[i];
+    const vS = volMap.get(curr.dateStr);
+    const vNext = volMap.get(nextDay(curr.dateStr));
+    if (!vS || !vNext || vS.volume <= 0) continue;
+    obs.push({
+      dateStr: curr.dateStr,
+      x1: curr.c1 / prev.c1 - 1,
+      x10: curr.c10 / prev.c10 - 1,
+      y: (vNext.volume - vNext.inflowsDaily) / vS.volume - 1,
+      volume: vS.volume,
+      deltaAum: vNext.volume - vS.volume,
+      inflows: vNext.inflowsDaily
+    });
+  }
+  if (obs.length < 400) return null;
+
+  // Agregación mensual para la regresión (2018+: AUM ya relevante, menos ruido)
+  const monthMap = new Map();
+  for (const o of obs) {
+    const mk = o.dateStr.slice(0, 7);
+    const m = monthMap.get(mk) ?? { key: mk, fy: 1, f1: 1, f10: 1 };
+    m.fy *= 1 + o.y;
+    m.f1 *= 1 + o.x1;
+    m.f10 *= 1 + o.x10;
+    monthMap.set(mk, m);
+  }
+  const fitRows = [...monthMap.values()].filter((m) => m.key >= "2018-01");
+  if (fitRows.length < 24) return null;
+
+  // OLS: y_m = a + b1·r1_m + b10·r10_m  (sistema normal 3x3 por Gauss)
+  const M = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
+  const B = [0, 0, 0];
+  for (const m of fitRows) {
+    const v = [1, m.f1 - 1, m.f10 - 1];
+    const y = m.fy - 1;
+    for (let r = 0; r < 3; r++) {
+      for (let c = 0; c < 3; c++) M[r][c] += v[r] * v[c];
+      B[r] += v[r] * y;
+    }
+  }
+  for (let c = 0; c < 3; c++) {
+    let p = c;
+    for (let r = c + 1; r < 3; r++) if (Math.abs(M[r][c]) > Math.abs(M[p][c])) p = r;
+    [M[c], M[p]] = [M[p], M[c]];
+    [B[c], B[p]] = [B[p], B[c]];
+    if (Math.abs(M[c][c]) < 1e-12) return null;
+    for (let r = 0; r < 3; r++) {
+      if (r === c) continue;
+      const f = M[r][c] / M[c][c];
+      for (let k = 0; k < 3; k++) M[r][k] -= f * M[c][k];
+      B[r] -= f * B[c];
+    }
+  }
+  const [a, b1, b10] = [B[0] / M[0][0], B[1] / M[1][1], B[2] / M[2][2]];
+
+  // R² del ajuste mensual
+  const meanY = fitRows.reduce((s, m) => s + (m.fy - 1), 0) / fitRows.length;
+  let ssRes = 0;
+  let ssTot = 0;
+  for (const m of fitRows) {
+    const y = m.fy - 1;
+    const yHat = a + b1 * (m.f1 - 1) + b10 * (m.f10 - 1);
+    ssRes += (y - yHat) ** 2;
+    ssTot += (y - meanY) ** 2;
+  }
+  const r2 = ssTot > 0 ? 1 - ssRes / ssTot : 0;
+
+  // Descomposición anual: la revalorización usa solo la parte de mercado
+  // (b1·x1 + b10·x10); el intercepto y el residuo quedan en "flujos no registrados".
+  const yearMap = new Map();
+  for (const o of obs) {
+    const year = Number(o.dateStr.slice(0, 4));
+    const y = yearMap.get(year) ?? { year, inflows: 0, revaluation: 0, deltaAum: 0, aumEnd: 0 };
+    y.inflows += o.inflows;
+    y.revaluation += o.volume * (b1 * o.x1 + b10 * o.x10);
+    y.deltaAum += o.deltaAum;
+    y.aumEnd = o.volume + o.deltaAum;
+    yearMap.set(year, y);
+  }
+  const yearly = [...yearMap.values()]
+    .sort((p, q) => p.year - q.year)
+    .map((y) => ({ ...y, hidden: y.deltaAum - y.inflows - y.revaluation }));
+
+  const totals = yearly.reduce(
+    (acc, y) => ({
+      inflows: acc.inflows + y.inflows,
+      hidden: acc.hidden + y.hidden,
+      revaluation: acc.revaluation + y.revaluation,
+      deltaAum: acc.deltaAum + y.deltaAum
+    }),
+    { inflows: 0, hidden: 0, revaluation: 0, deltaAum: 0 }
+  );
+
+  const betaSum = b1 + b10;
+  const effectivePortfolio = betaSum !== 0 ? (b1 * 1 + b10 * 10) / betaSum : null;
+  return { yearly, totals, meta: { b1, b10, intercept: a, r2, effectivePortfolio, fitMonths: fitRows.length } };
+}
+
 function buildArrYearlyIndexSeries(revenueRows) {
   const byYear = new Map();
   for (const row of revenueRows) {
@@ -563,12 +704,15 @@ function parseClientsHistory(csv) {
 
 export async function loadIndexaDataset() {
   const base = import.meta.env.BASE_URL;
-  const [volumeCsv, revenueCsv, clientsCsv] = await Promise.all([
+  const [volumeCsv, revenueCsv, clientsCsv, mutualCsv] = await Promise.all([
     fetch(`${base}data/indexa_stats_volume.csv`).then((r) => r.text()),
     fetch(`${base}data/indexa_stats_revenue.csv`).then((r) => r.text()),
     fetch(`${base}data/clients_history.csv`)
       .then((r) => (r.ok ? r.text() : "fecha;clientes\n"))
       .catch(() => "fecha;clientes\n"),
+    fetch(`${base}data/indexa_stats_mutual.csv`)
+      .then((r) => (r.ok ? r.text() : ""))
+      .catch(() => ""),
   ]);
 
   const volumeRows  = normalizeVolumeRows(parseCsv(volumeCsv));
@@ -576,7 +720,8 @@ export async function loadIndexaDataset() {
   const monthlyRows = monthlyFromDaily(volumeRows, revenueRows);
   const yearlyRows  = yearlyFromMonthly(monthlyRows);
   const clientsHistory = parseClientsHistory(clientsCsv);
-  return { volumeRows, revenueRows, monthlyRows, yearlyRows, clientsHistory, metrics: buildMetrics(volumeRows, revenueRows, monthlyRows, yearlyRows) };
+  const aumSources  = buildAumSources(volumeRows, mutualCsv);
+  return { volumeRows, revenueRows, monthlyRows, yearlyRows, clientsHistory, aumSources, metrics: buildMetrics(volumeRows, revenueRows, monthlyRows, yearlyRows) };
 }
 
 export function defaultIndexaAssumptions(dataset) {

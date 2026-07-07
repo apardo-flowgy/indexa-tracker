@@ -22,10 +22,19 @@ const downloads = [
     filename: "indexa_stats_revenue.csv",
     canonicalHeader: 'Fecha;"Volumen (\u20ac)";"Ingresos diarios recurrentes (\u20ac, sin IVA)";"Ingresos anuales recurrentes (\u20ac, sin IVA)";"Comisi\u00f3n media anual (%, sin IVA)"',
     expectedColumns: 5
+  },
+  {
+    // Valores liquidativos (base 100) de las carteras modelo de fondos:
+    // carteras 0-10 por tramo (<10k\u20ac, 10-100k\u20ac, >100k\u20ac) + variantes ISR.
+    // Las etiquetas de columna son neutrales al idioma ("10-100k\u20ac - 6"), as\u00ed
+    // que se guarda tal cual; src/data.js localiza las columnas por nombre.
+    stat: "mutual",
+    filename: "indexa_stats_mutual.csv",
+    minColumns: 34
   }
 ];
 
-async function downloadCsv({ stat, filename, canonicalHeader, expectedColumns }) {
+async function downloadCsv({ stat, filename, canonicalHeader, expectedColumns, minColumns }) {
   const url = `https://indexacapital.com/es/esp/stats/download?stat=${stat}`;
   const response = await fetch(url, {
     headers: {
@@ -48,17 +57,22 @@ async function downloadCsv({ stat, filename, canonicalHeader, expectedColumns })
   // Validaci\u00f3n estructural (independiente del idioma de la cabecera): n\u00famero de
   // columnas correcto y una primera fila de datos con fecha YYYY-MM-DD.
   const headerColumns = (lines[0] ?? "").split(";").length;
-  if (headerColumns !== expectedColumns) {
+  if (expectedColumns != null && headerColumns !== expectedColumns) {
     throw new Error(`Estructura CSV inesperada para ${stat}: ${headerColumns} columnas (esperadas ${expectedColumns})`);
+  }
+  if (minColumns != null && headerColumns < minColumns) {
+    throw new Error(`Estructura CSV inesperada para ${stat}: ${headerColumns} columnas (m\u00ednimo ${minColumns})`);
   }
   const firstDataRow = lines[1] ?? "";
   if (!/^\d{4}-\d{2}-\d{2};/.test(firstDataRow)) {
     throw new Error(`Primera fila de datos inesperada para ${stat}: "${firstDataRow.slice(0, 40)}"`);
   }
 
-  // Reescribe la cabecera al formato can\u00f3nico para desacoplarse del idioma que
+  // Si hay cabecera can\u00f3nica, se reescribe para desacoplarse del idioma que
   // devuelva Indexa; el resto del contenido se conserva \u00edntegro.
-  const normalizedContent = [canonicalHeader, ...lines.slice(1)].join("\n");
+  const normalizedContent = canonicalHeader
+    ? [canonicalHeader, ...lines.slice(1)].join("\n")
+    : content;
 
   const targetPath = path.join(dataDir, filename);
   const tmpPath = `${targetPath}.tmp`;

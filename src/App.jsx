@@ -149,14 +149,24 @@ const I18N = {
     lastDays: "ult.",
     real: "Real",
     gvcEstimate: "Estimacion GVC Gaesco",
-    portfolioReturnTitle: "Rentabilidad de la cartera (TWR)",
-    portfolioReturnInfo: "Time-Weighted Return diario con convencion fin-de-dia. Aisla la rentabilidad pura de la cartera eliminando el efecto del tamano y timing de las aportaciones.",
+    portfolioReturnTitle: "Rentabilidad implicita del AUM (TWR)",
+    portfolioReturnInfo: "Time-Weighted Return diario calculado sobre el AUM agregado con convencion fin-de-dia. Ojo: el volumen publicado va con desfase respecto al valor liquidativo e incluye flujos no registrados como aportacion, y ese ruido se acumula al componer factores diarios, por lo que puede sobreestimar la rentabilidad tipica de una cartera en varios puntos. La seccion Origen del crecimiento del AUM estima la revalorizacion con las carteras modelo oficiales, que es mas fiable.",
     annualizedTwr: "TWR anualizado",
     partial: "parcial",
     accumulated: "Acumulado",
     years: "anos",
     monthlyBreakdownNote: "Desglose mensual - verde: rentabilidad positiva · rojo: negativa · intensidad proporcional a la magnitud",
     currentYearPartialNote: "* Ano en curso, datos parciales hasta el ultimo dato disponible.",
+    aumSourcesTitle: "Origen del crecimiento del AUM",
+    aumSourcesInfo: "Descompone el crecimiento del patrimonio en tres fuentes: aportaciones netas declaradas, traspasos y otros flujos no registrados como aportacion (estimados por residuo) y revalorizacion de mercado. La revalorizacion se calcula marcando el AUM a mercado cada dia con los valores liquidativos oficiales de las carteras modelo de Indexa; la mezcla efectiva de carteras se estima con una regresion mensual contra las carteras 1 y 10.",
+    declaredInflowsLabel: "Aportaciones declaradas",
+    hiddenFlowsLabel: "Traspasos y flujos no registrados (est.)",
+    revaluationLabel: "Revalorizacion de mercado (est.)",
+    effectivePortfolioLabel: "Cartera media equivalente",
+    modelFitLabel: "Ajuste del modelo (mensual, 2018+)",
+    deltaAumHeader: "Crec. AUM",
+    ofGrowthHeader: "% del crec.",
+    aumSourcesNote: "Metodo: retorno implicito diario del AUM (corrigiendo el desfase de 1 dia del volumen publicado respecto al valor liquidativo) explicado con las carteras modelo 1 y 10. El residuo anual se asigna a traspasos y flujos no registrados. Perimetro: solo cuentas de fondos.",
     historyTitle: "Historico y referencias 2030",
     historyInfo: "Datos reales auditados del AUM y ARR a fin de cada ano. Las filas en cursiva son referencias propias de la curva 2030, no datos reales ni guia oficial.",
     historySub: "Datos reales auditados + curva de referencia hasta 2030 · Fee media constante al",
@@ -322,14 +332,24 @@ const I18N = {
     lastDays: "last",
     real: "Actual",
     gvcEstimate: "GVC Gaesco estimate",
-    portfolioReturnTitle: "Portfolio return (TWR)",
-    portfolioReturnInfo: "Daily Time-Weighted Return with end-of-day convention. It isolates pure portfolio performance by removing the effect of contribution size and timing.",
+    portfolioReturnTitle: "Implied AUM return (TWR)",
+    portfolioReturnInfo: "Daily Time-Weighted Return computed on aggregate AUM with end-of-day convention. Caveat: published volume lags the NAV and includes flows not recorded as contributions, and that noise compounds across daily factors, so it can overstate the typical portfolio return by several points. The AUM growth sources section estimates revaluation from the official model portfolios, which is more reliable.",
     annualizedTwr: "Annualized TWR",
     partial: "partial",
     accumulated: "Accumulated",
     years: "years",
     monthlyBreakdownNote: "Monthly breakdown - green: positive return · red: negative return · intensity proportional to magnitude",
     currentYearPartialNote: "* Current year, partial data to the latest available data point.",
+    aumSourcesTitle: "AUM growth sources",
+    aumSourcesInfo: "Breaks AUM growth into three sources: declared net contributions, transfers and other flows not recorded as contributions (estimated as a residual), and market revaluation. Revaluation is computed by marking AUM to market daily using Indexa's official model portfolio NAVs; the effective portfolio mix is estimated with a monthly regression against portfolios 1 and 10.",
+    declaredInflowsLabel: "Declared contributions",
+    hiddenFlowsLabel: "Transfers & unrecorded flows (est.)",
+    revaluationLabel: "Market revaluation (est.)",
+    effectivePortfolioLabel: "Equivalent average portfolio",
+    modelFitLabel: "Model fit (monthly, 2018+)",
+    deltaAumHeader: "AUM growth",
+    ofGrowthHeader: "% of growth",
+    aumSourcesNote: "Method: daily implied AUM return (correcting the 1-day lag of published volume vs NAV) explained with model portfolios 1 and 10. The annual residual is assigned to transfers and unrecorded flows. Scope: fund accounts only.",
     historyTitle: "History and 2030 references",
     historyInfo: "Audited actual AUM and ARR data at year-end. Italic rows are proprietary references from the 2030 curve, not actual data or official guidance.",
     historySub: "Audited actual data + reference curve to 2030 · Average fee constant at",
@@ -1404,6 +1424,150 @@ function ArrYearlyIndexChart({ data, t }) {
         </text>
       ))}
     </svg>
+  );
+}
+
+// ── Origen del crecimiento del AUM ────────────────────────────────────────────
+const AUM_SOURCE_COLORS = { inflows: "#3B82F6", hidden: "#8B5CF6", revaluation: "#22C55E" };
+
+function AumSourcesYearlyChart({ yearly, t }) {
+  if (!yearly?.length) return null;
+  const rows = yearly.filter((y) => y.year >= 2019);
+  const currentYear = new Date().getFullYear();
+
+  const W = 1100, H = 280;
+  const pad = { top: 28, right: 20, bottom: 42, left: 74 };
+  const iW = W - pad.left - pad.right;
+  const iH = H - pad.top - pad.bottom;
+
+  // Escala: apilado de positivos arriba y negativos abajo
+  let maxPos = 0, minNeg = 0;
+  for (const y of rows) {
+    const parts = [y.inflows, y.hidden, y.revaluation];
+    maxPos = Math.max(maxPos, parts.filter((v) => v > 0).reduce((s, v) => s + v, 0));
+    minNeg = Math.min(minNeg, parts.filter((v) => v < 0).reduce((s, v) => s + v, 0));
+  }
+  const stepCandidates = [100e6, 200e6, 250e6, 500e6, 1e9, 2e9];
+  const roughStep = (maxPos - minNeg) / 4 || 1;
+  const tickStep = stepCandidates.find((s) => s >= roughStep) ?? 2e9;
+  const maxVal = Math.ceil(maxPos / tickStep) * tickStep || tickStep;
+  const minVal = Math.floor(minNeg / tickStep) * tickStep;
+  const range = maxVal - minVal || 1;
+  const py = (v) => pad.top + iH * (1 - (v - minVal) / range);
+
+  const yTicks = [];
+  for (let v = minVal; v <= maxVal + 1; v += tickStep) yTicks.push(v);
+
+  const n = rows.length;
+  const slotW = iW / n;
+  const barW = Math.min(slotW * 0.6, 72);
+  const keys = ["inflows", "hidden", "revaluation"];
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="chart-svg">
+      {yTicks.map((v) => (
+        <g key={v}>
+          <line x1={pad.left} y1={py(v).toFixed(1)} x2={W - pad.right} y2={py(v).toFixed(1)}
+            stroke={v === 0 ? "#94A3B8" : "#E2E8F0"} strokeWidth="1"
+            strokeDasharray={v === 0 ? "4 3" : undefined} />
+          <text x={pad.left - 8} y={(py(v) + 4).toFixed(1)} textAnchor="end" fontSize="12" fill="#A0AEC0">
+            {euroCompact.format(v)}
+          </text>
+        </g>
+      ))}
+      {rows.map((row, i) => {
+        const cx = pad.left + (i + 0.5) * slotW;
+        let posBase = 0, negBase = 0;
+        const isPartial = row.year === currentYear;
+        return (
+          <g key={row.year} opacity={isPartial ? 0.75 : 1}>
+            {keys.map((key) => {
+              const v = row[key];
+              if (!v) return null;
+              let yRect, hRect;
+              if (v >= 0) {
+                yRect = py(posBase + v);
+                hRect = py(posBase) - py(posBase + v);
+                posBase += v;
+              } else {
+                yRect = py(negBase);
+                hRect = py(negBase + v) - py(negBase);
+                negBase += v;
+              }
+              return (
+                <rect key={key} x={(cx - barW / 2).toFixed(1)} y={yRect.toFixed(1)}
+                  width={barW.toFixed(1)} height={Math.max(1, hRect).toFixed(1)}
+                  fill={AUM_SOURCE_COLORS[key]} rx="2" />
+              );
+            })}
+            <text x={cx.toFixed(1)} y={(py(Math.max(posBase, 0)) - 6).toFixed(1)} textAnchor="middle"
+              fontSize="10" fill="#4A5568" fontWeight="600">
+              {euroCompact.format(row.deltaAum)}
+            </text>
+            <text x={cx.toFixed(1)} y={H - pad.bottom + 16} textAnchor="middle" fontSize="11" fill="#718096">
+              {row.year}{isPartial ? "*" : ""}
+            </text>
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+function AumSourcesLegend({ t }) {
+  const items = [
+    { key: "inflows", label: t.declaredInflowsLabel },
+    { key: "hidden", label: t.hiddenFlowsLabel },
+    { key: "revaluation", label: t.revaluationLabel },
+  ];
+  return (
+    <div style={{ display: "flex", gap: 18, flexWrap: "wrap", margin: "4px 0 8px", fontSize: 13, color: "#4A5568" }}>
+      {items.map(({ key, label }) => (
+        <span key={key} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+          <i style={{ width: 12, height: 12, borderRadius: 3, background: AUM_SOURCE_COLORS[key], display: "inline-block" }} />
+          {label}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function AumSourcesTable({ yearly, t }) {
+  const rows = yearly.filter((y) => y.year >= 2019);
+  const currentYear = new Date().getFullYear();
+  return (
+    <div className="table-wrap">
+      <table className="history-table">
+        <thead>
+          <tr>
+            <th>{t.year}</th>
+            <th>{t.declaredInflowsLabel}</th>
+            <th>{t.hiddenFlowsLabel}</th>
+            <th>{t.revaluationLabel}</th>
+            <th>{t.deltaAumHeader}</th>
+            <th>{t.ofGrowthHeader}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => {
+            const revalShare = row.deltaAum !== 0 ? row.revaluation / row.deltaAum : null;
+            return (
+              <tr key={row.year} className={row.year === currentYear ? "row-current" : ""}>
+                <td className="year-cell">
+                  {row.year}
+                  {row.year === currentYear ? <span className="ytd-tag">YTD</span> : null}
+                </td>
+                <td>{euroCompact.format(row.inflows)}</td>
+                <td>{euroCompact.format(row.hidden)}</td>
+                <td className={row.revaluation >= 0 ? "col-positive" : ""}>{euroCompact.format(row.revaluation)}</td>
+                <td>{euroCompact.format(row.deltaAum)}</td>
+                <td>{revalShare != null ? percent.format(revalShare) : "-"}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
@@ -2892,6 +3056,36 @@ export default function App() {
             <ReturnBarsChart annualReturns={twrData.annualReturns.filter((r) => r.year >= 2021)} />
             <p className="chart-note" style={{ marginTop: 16, marginBottom: 4 }}>{t.monthlyBreakdownNote}</p>
             <ReturnMonthlyHeatmap monthlyReturns={twrData.monthlyReturns.filter((r) => r.year >= 2021)} t={t} />
+            <p className="chart-note">{t.currentYearPartialNote}</p>
+          </section>
+        )}
+
+        {dataset.aumSources && (
+          <section className="chart-section">
+            <div className="chart-top">
+              <div>
+                <div className="chart-title-row">
+                  <h2>{t.aumSourcesTitle}</h2>
+                  <InfoTooltip label={t.moreInformation}><p>{t.aumSourcesInfo}</p></InfoTooltip>
+                </div>
+                <p>
+                  {t.declaredInflowsLabel}: <strong>{euroCompact.format(dataset.aumSources.totals.inflows)}</strong>
+                  {" · "}
+                  {t.hiddenFlowsLabel}: <strong>{euroCompact.format(dataset.aumSources.totals.hidden)}</strong>
+                  {" · "}
+                  {t.revaluationLabel}: <strong>{euroCompact.format(dataset.aumSources.totals.revaluation)}</strong>
+                </p>
+                <p className="chart-note">
+                  {t.effectivePortfolioLabel}: <strong>{dataset.aumSources.meta.effectivePortfolio?.toFixed(1) ?? "-"}/10</strong>
+                  {" · "}
+                  {t.modelFitLabel}: R² = {dataset.aumSources.meta.r2.toFixed(2)}
+                </p>
+              </div>
+            </div>
+            <AumSourcesLegend t={t} />
+            <AumSourcesYearlyChart yearly={dataset.aumSources.yearly} t={t} />
+            <AumSourcesTable yearly={dataset.aumSources.yearly} t={t} />
+            <p className="chart-note">{t.aumSourcesNote}</p>
             <p className="chart-note">{t.currentYearPartialNote}</p>
           </section>
         )}

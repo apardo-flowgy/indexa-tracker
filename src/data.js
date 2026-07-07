@@ -449,8 +449,29 @@ export function buildClientInflowModel(volumeRows, clientsHistory) {
   });
   const r2 = ssTot > 0 ? 1 - ssRes / ssTot : 0;
 
+  // Tendencia del reparto: ventana móvil de 12 meses, para suavizar el ruido
+  // mensual (aportaciones muy lumpy) sin diluir el crecimiento en un único
+  // numero anual. Requiere al menos 12 meses previos en la serie.
+  const shareTrend = series.length >= 12
+    ? series.slice(11).map((_, idx) => {
+        const win = series.slice(idx, idx + 12);
+        const tot = win.reduce((s, m) => s + m.inflows, 0);
+        const nw = win.reduce((s, m) => s + m.newEst, 0);
+        const rec = win.reduce((s, m) => s + m.recurringEst, 0);
+        const last = win.at(-1);
+        return {
+          date: last.date,
+          key: last.key,
+          newShare: tot !== 0 ? nw / tot : null,
+          recurringShare: tot !== 0 ? rec / tot : null,
+          residualShare: tot !== 0 ? (tot - nw - rec) / tot : null
+        };
+      })
+    : [];
+
   return {
     series,
+    shareTrend,
     initialTicket,
     recurringMonthly,
     r2,

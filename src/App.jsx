@@ -179,6 +179,8 @@ const I18N = {
     newShort: "nuevos",
     recurringShort: "recurrente",
     residualShort: "residuo (retiradas y otros)",
+    shareTrendTitle: "Evolucion del reparto (ventana movil 12 meses)",
+    shareTrendNote: "Cada punto agrega los ultimos 12 meses hasta esa fecha, para suavizar el ruido mes a mes y ver la tendencia real. Los primeros puntos (2022-2023) usan interpolacion con pocas observaciones de clientes y pueden ser menos fiables.",
     clientInflowNote: "Validacion cruzada: el recurrente estimado es consistente con la aportacion media mensual oficial (~440 EUR). La estacionalidad (picos en enero y noviembre, minimo en abril) queda en el residuo: meses por encima de la linea son estacionalmente fuertes. Datos de clientes desde dic-2021.",
     historyTitle: "Historico y referencias 2030",
     historyInfo: "Datos reales auditados del AUM y ARR a fin de cada ano. Las filas en cursiva son referencias propias de la curva 2030, no datos reales ni guia oficial.",
@@ -375,6 +377,8 @@ const I18N = {
     newShort: "new",
     recurringShort: "recurring",
     residualShort: "residual (withdrawals & other)",
+    shareTrendTitle: "Split trend (12-month rolling window)",
+    shareTrendNote: "Each point aggregates the trailing 12 months, smoothing month-to-month noise to reveal the real trend. Earliest points (2022-2023) use interpolation with few client observations and may be less reliable.",
     clientInflowNote: "Cross-check: the estimated recurring contribution is consistent with the official average monthly contribution (~440 EUR). Seasonality (peaks in January and November, minimum in April) remains in the residual: months above the line are seasonally strong. Client data since Dec-2021.",
     historyTitle: "History and 2030 references",
     historyInfo: "Audited actual AUM and ARR data at year-end. Italic rows are proprietary references from the 2030 curve, not actual data or official guidance.",
@@ -1678,6 +1682,82 @@ function ClientInflowLegend({ t }) {
       {items.map(({ color, label, line }) => (
         <span key={label} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
           <i style={{ width: 12, height: line ? 3 : 12, borderRadius: 3, background: color, display: "inline-block" }} />
+          {label}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function ClientFlowShareTrendChart({ shareTrend, t }) {
+  if (!shareTrend?.length) return null;
+
+  const W = 1100, H = 240;
+  const pad = { top: 20, right: 20, bottom: 32, left: 54 };
+  const iW = W - pad.left - pad.right;
+  const iH = H - pad.top - pad.bottom;
+
+  const allVals = shareTrend.flatMap((r) => [r.newShare, r.recurringShare, r.residualShare]).filter((v) => v != null);
+  const rawMin = Math.min(0, ...allVals);
+  const rawMax = Math.max(1, ...allVals);
+  const tickStep = 0.25;
+  const minVal = Math.floor(rawMin / tickStep) * tickStep;
+  const maxVal = Math.ceil(rawMax / tickStep) * tickStep;
+  const range = maxVal - minVal || 1;
+  const py = (v) => pad.top + iH * (1 - (v - minVal) / range);
+  const px = (i) => pad.left + (shareTrend.length === 1 ? 0 : (i * iW) / (shareTrend.length - 1));
+
+  const yTicks = [];
+  for (let v = minVal; v <= maxVal + 0.001; v += tickStep) yTicks.push(Math.round(v * 100) / 100);
+
+  const labelFmt = new Intl.DateTimeFormat("es-ES", { month: "short", year: "2-digit" });
+  const nLabels = Math.min(shareTrend.length, 10);
+  const labelStep = Math.max(1, Math.round(shareTrend.length / nLabels));
+
+  const lines = [
+    { key: "newShare", color: CLIENT_FLOW_COLORS.newEst },
+    { key: "recurringShare", color: CLIENT_FLOW_COLORS.recurringEst },
+    { key: "residualShare", color: "#94A3B8" },
+  ];
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="chart-svg">
+      {yTicks.map((v) => (
+        <g key={v}>
+          <line x1={pad.left} y1={py(v).toFixed(1)} x2={W - pad.right} y2={py(v).toFixed(1)}
+            stroke={v === 0 ? "#94A3B8" : "#E2E8F0"} strokeWidth="1"
+            strokeDasharray={v === 0 ? "4 3" : undefined} />
+          <text x={pad.left - 8} y={(py(v) + 4).toFixed(1)} textAnchor="end" fontSize="12" fill="#A0AEC0">
+            {(v * 100).toFixed(0)}%
+          </text>
+        </g>
+      ))}
+      {shareTrend.map((r, i) =>
+        i % labelStep === 0 ? (
+          <text key={r.key} x={px(i).toFixed(1)} y={H - pad.bottom + 16} textAnchor="middle" fontSize="10" fill="#718096">
+            {labelFmt.format(r.date)}
+          </text>
+        ) : null
+      )}
+      {lines.map(({ key, color }) => (
+        <polyline key={key} fill="none" stroke={color} strokeWidth="2"
+          points={shareTrend.map((r, i) => `${px(i).toFixed(1)},${py(r[key] ?? 0).toFixed(1)}`).join(" ")} />
+      ))}
+    </svg>
+  );
+}
+
+function ClientFlowShareTrendLegend({ t }) {
+  const items = [
+    { color: CLIENT_FLOW_COLORS.newEst, label: t.newClientsFlowLabel },
+    { color: CLIENT_FLOW_COLORS.recurringEst, label: t.recurringFlowLabel },
+    { color: "#94A3B8", label: t.residualShort },
+  ];
+  return (
+    <div style={{ display: "flex", gap: 18, flexWrap: "wrap", margin: "16px 0 8px", fontSize: 13, color: "#4A5568" }}>
+      {items.map(({ color, label }) => (
+        <span key={label} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+          <i style={{ width: 12, height: 3, borderRadius: 3, background: color, display: "inline-block" }} />
           {label}
         </span>
       ))}
@@ -3176,6 +3256,11 @@ export default function App() {
             <ClientInflowLegend t={t} />
             <ClientInflowChart series={dataset.clientInflowModel.series} t={t} />
             <p className="chart-note">{t.clientInflowNote}</p>
+
+            <h3 style={{ marginTop: 28 }}>{t.shareTrendTitle}</h3>
+            <ClientFlowShareTrendLegend t={t} />
+            <ClientFlowShareTrendChart shareTrend={dataset.clientInflowModel.shareTrend} t={t} />
+            <p className="chart-note">{t.shareTrendNote}</p>
           </section>
         )}
 

@@ -178,6 +178,7 @@ const I18N = {
     flowSplitLabel: "Reparto del flujo total",
     newShort: "nuevos",
     recurringShort: "recurrente",
+    residualShort: "residuo (retiradas y otros)",
     clientInflowNote: "Validacion cruzada: el recurrente estimado es consistente con la aportacion media mensual oficial (~440 EUR). La estacionalidad (picos en enero y noviembre, minimo en abril) queda en el residuo: meses por encima de la linea son estacionalmente fuertes. Datos de clientes desde dic-2021.",
     historyTitle: "Historico y referencias 2030",
     historyInfo: "Datos reales auditados del AUM y ARR a fin de cada ano. Las filas en cursiva son referencias propias de la curva 2030, no datos reales ni guia oficial.",
@@ -373,6 +374,7 @@ const I18N = {
     flowSplitLabel: "Total flow split",
     newShort: "new",
     recurringShort: "recurring",
+    residualShort: "residual (withdrawals & other)",
     clientInflowNote: "Cross-check: the estimated recurring contribution is consistent with the official average monthly contribution (~440 EUR). Seasonality (peaks in January and November, minimum in April) remains in the residual: months above the line are seasonally strong. Client data since Dec-2021.",
     historyTitle: "History and 2030 references",
     historyInfo: "Audited actual AUM and ARR data at year-end. Italic rows are proprietary references from the 2030 curve, not actual data or official guidance.",
@@ -3165,6 +3167,8 @@ export default function App() {
                   {t.flowSplitLabel}: <strong>{percent.format(dataset.clientInflowModel.newShare)}</strong> {t.newShort}
                   {" · "}
                   <strong>{percent.format(dataset.clientInflowModel.recurringShare)}</strong> {t.recurringShort}
+                  {" · "}
+                  <strong>{percent.format(1 - dataset.clientInflowModel.newShare - dataset.clientInflowModel.recurringShare)}</strong> {t.residualShort}
                   {" · "}R² = {dataset.clientInflowModel.r2.toFixed(2)}
                 </p>
               </div>

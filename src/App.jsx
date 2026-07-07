@@ -167,6 +167,18 @@ const I18N = {
     deltaAumHeader: "Crec. AUM",
     ofGrowthHeader: "% del crec.",
     aumSourcesNote: "Metodo: retorno implicito diario del AUM (corrigiendo el desfase de 1 dia del volumen publicado respecto al valor liquidativo) explicado con las carteras modelo 1 y 10. El residuo anual se asigna a traspasos y flujos no registrados. Perimetro: solo cuentas de fondos.",
+    clientInflowTitle: "Aportaciones: clientes nuevos vs recurrentes",
+    clientInflowInfo: "Modelo mensual que separa las aportaciones netas en dos componentes: dinero que llega con clientes nuevos (ticket inicial y primeros meses) y aportacion recurrente de los clientes existentes. Se estima por regresion: aportacion mensual = a x nuevos clientes del mes + b x clientes existentes. La serie de clientes se interpola entre observaciones, asi que la atribucion mes a mes es aproximada.",
+    initialTicketLabel: "Ticket medio por cliente nuevo",
+    recurringPerClientLabel: "Recurrente por cliente existente",
+    perMonthSuffix: "/mes",
+    newClientsFlowLabel: "Flujo estimado de clientes nuevos",
+    recurringFlowLabel: "Flujo recurrente estimado",
+    actualInflowsLabel: "Aportacion real",
+    flowSplitLabel: "Reparto del flujo total",
+    newShort: "nuevos",
+    recurringShort: "recurrente",
+    clientInflowNote: "El componente de clientes nuevos absorbe tambien las aportaciones extra correlacionadas con periodos de captacion alta, y la estacionalidad (picos en enero y noviembre, minimo en abril) queda en el residuo: meses por encima de la linea son estacionalmente fuertes. Datos de clientes desde dic-2021.",
     historyTitle: "Historico y referencias 2030",
     historyInfo: "Datos reales auditados del AUM y ARR a fin de cada ano. Las filas en cursiva son referencias propias de la curva 2030, no datos reales ni guia oficial.",
     historySub: "Datos reales auditados + curva de referencia hasta 2030 · Fee media constante al",
@@ -350,6 +362,18 @@ const I18N = {
     deltaAumHeader: "AUM growth",
     ofGrowthHeader: "% of growth",
     aumSourcesNote: "Method: daily implied AUM return (correcting the 1-day lag of published volume vs NAV) explained with model portfolios 1 and 10. The annual residual is assigned to transfers and unrecorded flows. Scope: fund accounts only.",
+    clientInflowTitle: "Contributions: new vs existing clients",
+    clientInflowInfo: "Monthly model that splits net contributions into two components: money arriving with new clients (initial ticket and first months) and recurring contributions from existing clients. Estimated by regression: monthly inflows = a x new clients that month + b x existing clients. The client series is interpolated between observations, so month-by-month attribution is approximate.",
+    initialTicketLabel: "Average ticket per new client",
+    recurringPerClientLabel: "Recurring per existing client",
+    perMonthSuffix: "/month",
+    newClientsFlowLabel: "Estimated new-client flow",
+    recurringFlowLabel: "Estimated recurring flow",
+    actualInflowsLabel: "Actual inflows",
+    flowSplitLabel: "Total flow split",
+    newShort: "new",
+    recurringShort: "recurring",
+    clientInflowNote: "The new-client component also absorbs extra contributions correlated with high-acquisition periods, and seasonality (peaks in January and November, minimum in April) remains in the residual: months above the line are seasonally strong. Client data since Dec-2021.",
     historyTitle: "History and 2030 references",
     historyInfo: "Audited actual AUM and ARR data at year-end. Italic rows are proprietary references from the 2030 curve, not actual data or official guidance.",
     historySub: "Audited actual data + reference curve to 2030 · Average fee constant at",
@@ -1567,6 +1591,94 @@ function AumSourcesTable({ yearly, t }) {
           })}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+// ── Aportaciones: nuevos vs recurrentes ───────────────────────────────────────
+const CLIENT_FLOW_COLORS = { newEst: "#6366F1", recurringEst: "#14B8A6", actual: "#1A202C" };
+
+function ClientInflowChart({ series, t }) {
+  const rows = series.slice(-30);
+  if (!rows.length) return null;
+
+  const W = 1100, H = 280;
+  const pad = { top: 28, right: 20, bottom: 46, left: 74 };
+  const iW = W - pad.left - pad.right;
+  const iH = H - pad.top - pad.bottom;
+
+  const maxVal = Math.max(...rows.map((r) => Math.max(r.inflows, r.newEst + r.recurringEst)));
+  const stepCandidates = [10e6, 20e6, 25e6, 50e6, 100e6, 200e6];
+  const tickStep = stepCandidates.find((s) => s >= maxVal / 4) ?? 200e6;
+  const top = Math.ceil(maxVal / tickStep) * tickStep || tickStep;
+  const py = (v) => pad.top + iH * (1 - v / top);
+
+  const yTicks = [];
+  for (let v = 0; v <= top + 1; v += tickStep) yTicks.push(v);
+
+  const n = rows.length;
+  const slotW = iW / n;
+  const barW = Math.min(slotW * 0.62, 30);
+  const labelFmt = new Intl.DateTimeFormat("es-ES", { month: "short", year: "2-digit" });
+  const linePoints = rows
+    .map((r, i) => `${(pad.left + (i + 0.5) * slotW).toFixed(1)},${py(r.inflows).toFixed(1)}`)
+    .join(" ");
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="chart-svg">
+      {yTicks.map((v) => (
+        <g key={v}>
+          <line x1={pad.left} y1={py(v).toFixed(1)} x2={W - pad.right} y2={py(v).toFixed(1)}
+            stroke={v === 0 ? "#94A3B8" : "#E2E8F0"} strokeWidth="1" />
+          <text x={pad.left - 8} y={(py(v) + 4).toFixed(1)} textAnchor="end" fontSize="12" fill="#A0AEC0">
+            {euroCompact.format(v)}
+          </text>
+        </g>
+      ))}
+      {rows.map((r, i) => {
+        const cx = pad.left + (i + 0.5) * slotW;
+        const hNew = py(0) - py(r.newEst);
+        const hRec = py(0) - py(r.recurringEst);
+        const showLabel = i % 3 === 0;
+        return (
+          <g key={r.key}>
+            <rect x={(cx - barW / 2).toFixed(1)} y={py(r.newEst).toFixed(1)}
+              width={barW.toFixed(1)} height={Math.max(1, hNew).toFixed(1)}
+              fill={CLIENT_FLOW_COLORS.newEst} rx="2" />
+            <rect x={(cx - barW / 2).toFixed(1)} y={py(r.newEst + r.recurringEst).toFixed(1)}
+              width={barW.toFixed(1)} height={Math.max(1, hRec).toFixed(1)}
+              fill={CLIENT_FLOW_COLORS.recurringEst} rx="2" />
+            {showLabel && (
+              <text x={cx.toFixed(1)} y={H - pad.bottom + 16} textAnchor="middle" fontSize="10" fill="#718096">
+                {labelFmt.format(r.date)}
+              </text>
+            )}
+          </g>
+        );
+      })}
+      <polyline points={linePoints} fill="none" stroke={CLIENT_FLOW_COLORS.actual} strokeWidth="2" />
+      {rows.map((r, i) => (
+        <circle key={r.key} cx={(pad.left + (i + 0.5) * slotW).toFixed(1)} cy={py(r.inflows).toFixed(1)}
+          r="2.5" fill={CLIENT_FLOW_COLORS.actual} />
+      ))}
+    </svg>
+  );
+}
+
+function ClientInflowLegend({ t }) {
+  const items = [
+    { color: CLIENT_FLOW_COLORS.newEst, label: t.newClientsFlowLabel },
+    { color: CLIENT_FLOW_COLORS.recurringEst, label: t.recurringFlowLabel },
+    { color: CLIENT_FLOW_COLORS.actual, label: t.actualInflowsLabel, line: true },
+  ];
+  return (
+    <div style={{ display: "flex", gap: 18, flexWrap: "wrap", margin: "4px 0 8px", fontSize: 13, color: "#4A5568" }}>
+      {items.map(({ color, label, line }) => (
+        <span key={label} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+          <i style={{ width: 12, height: line ? 3 : 12, borderRadius: 3, background: color, display: "inline-block" }} />
+          {label}
+        </span>
+      ))}
     </div>
   );
 }
@@ -3033,6 +3145,33 @@ export default function App() {
             </div>
             <ClientsChart data={dataset.clientsHistory} t={t} lang={lang} />
             <ClientAnalyticsSection data={dataset.clientsHistory} t={t} lang={lang} />
+          </section>
+        )}
+
+        {dataset.clientInflowModel && (
+          <section className="chart-section">
+            <div className="chart-top">
+              <div>
+                <div className="chart-title-row">
+                  <h2>{t.clientInflowTitle}</h2>
+                  <InfoTooltip label={t.moreInformation}><p>{t.clientInflowInfo}</p></InfoTooltip>
+                </div>
+                <p>
+                  {t.initialTicketLabel}: <strong>{euroCompact.format(dataset.clientInflowModel.initialTicket)}</strong>
+                  {" · "}
+                  {t.recurringPerClientLabel}: <strong>{euroCompact.format(dataset.clientInflowModel.recurringMonthly)}{t.perMonthSuffix}</strong>
+                </p>
+                <p className="chart-note">
+                  {t.flowSplitLabel}: <strong>{percent.format(dataset.clientInflowModel.newShare)}</strong> {t.newShort}
+                  {" · "}
+                  <strong>{percent.format(dataset.clientInflowModel.recurringShare)}</strong> {t.recurringShort}
+                  {" · "}R² = {dataset.clientInflowModel.r2.toFixed(2)}
+                </p>
+              </div>
+            </div>
+            <ClientInflowLegend t={t} />
+            <ClientInflowChart series={dataset.clientInflowModel.series} t={t} />
+            <p className="chart-note">{t.clientInflowNote}</p>
           </section>
         )}
 

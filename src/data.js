@@ -367,6 +367,89 @@ export function buildAumSources(volumeRows, mutualCsv) {
   return { yearly, totals, meta: { b1, b10, intercept: a, r2, effectivePortfolio, fitMonths: fitRows.length } };
 }
 
+// ── Aportaciones: clientes nuevos vs recurrentes ──────────────────────────────
+// Modelo mensual sin intercepto: F_m = a·ΔClientes_m + b·Clientes_{m-1}
+//   a ≈ ticket inicial medio que trae un cliente nuevo (incluye sus primeros meses)
+//   b ≈ aportación recurrente mensual media por cliente existente
+// La serie de clientes se interpola linealmente entre observaciones, así que la
+// atribución mensual es aproximada en los tramos con pocas observaciones.
+export function buildClientInflowModel(volumeRows, clientsHistory) {
+  if (!clientsHistory || clientsHistory.length < 6 || volumeRows.length < 60) return null;
+
+  const inflowsByMonth = new Map();
+  for (const row of volumeRows) {
+    const mk = row.date.toISOString().slice(0, 7);
+    inflowsByMonth.set(mk, (inflowsByMonth.get(mk) ?? 0) + row.inflowsDaily);
+  }
+
+  const obs = clientsHistory.map((o) => ({ t: o.date.getTime(), n: o.clients }));
+  const interpolate = (t) => {
+    if (t < obs[0].t || t > obs.at(-1).t) return null;
+    const i = obs.findIndex((o) => o.t >= t);
+    if (i <= 0) return obs[0].n;
+    const a = obs[i - 1];
+    const b = obs[i];
+    return a.n + ((b.n - a.n) * (t - a.t)) / (b.t - a.t || 1);
+  };
+
+  // Meses completos con clientes interpolables en ambos extremos
+  const months = [];
+  const first = new Date(obs[0].t);
+  const cursor = new Date(first.getFullYear(), first.getMonth() + 1, 1);
+  const lastVolumeMonth = volumeRows.at(-1).date.toISOString().slice(0, 7);
+  while (true) {
+    const mk = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, "0")}`;
+    if (mk >= lastVolumeMonth) break; // excluir el mes en curso (parcial)
+    const endT = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0, 23, 59).getTime();
+    const startT = new Date(cursor.getFullYear(), cursor.getMonth(), 0, 23, 59).getTime();
+    const cEnd = interpolate(endT);
+    const cStart = interpolate(startT);
+    const inflows = inflowsByMonth.get(mk);
+    if (cEnd != null && cStart != null && inflows != null) {
+      months.push({ key: mk, date: new Date(`${mk}-01T00:00:00`), inflows, dClients: cEnd - cStart, clientsPrev: cStart });
+    }
+    cursor.setMonth(cursor.getMonth() + 1);
+  }
+  if (months.length < 24) return null;
+
+  // OLS 2x2 sin intercepto
+  let s11 = 0, s22 = 0, s12 = 0, s1y = 0, s2y = 0;
+  for (const m of months) {
+    s11 += m.dClients * m.dClients;
+    s22 += m.clientsPrev * m.clientsPrev;
+    s12 += m.dClients * m.clientsPrev;
+    s1y += m.dClients * m.inflows;
+    s2y += m.clientsPrev * m.inflows;
+  }
+  const det = s11 * s22 - s12 * s12;
+  if (Math.abs(det) < 1e-9) return null;
+  const initialTicket = (s1y * s22 - s2y * s12) / det;
+  const recurringMonthly = (s2y * s11 - s1y * s12) / det;
+
+  const meanInflows = months.reduce((s, m) => s + m.inflows, 0) / months.length;
+  let ssRes = 0, ssTot = 0, totalNew = 0, totalRecurring = 0, totalInflows = 0;
+  const series = months.map((m) => {
+    const newEst = initialTicket * m.dClients;
+    const recurringEst = recurringMonthly * m.clientsPrev;
+    ssRes += (m.inflows - newEst - recurringEst) ** 2;
+    ssTot += (m.inflows - meanInflows) ** 2;
+    totalNew += newEst;
+    totalRecurring += recurringEst;
+    totalInflows += m.inflows;
+    return { ...m, newEst, recurringEst, residual: m.inflows - newEst - recurringEst };
+  });
+  const r2 = ssTot > 0 ? 1 - ssRes / ssTot : 0;
+
+  return {
+    series,
+    initialTicket,
+    recurringMonthly,
+    r2,
+    newShare: totalInflows > 0 ? totalNew / totalInflows : null,
+    recurringShare: totalInflows > 0 ? totalRecurring / totalInflows : null
+  };
+}
+
 function buildArrYearlyIndexSeries(revenueRows) {
   const byYear = new Map();
   for (const row of revenueRows) {
@@ -721,7 +804,8 @@ export async function loadIndexaDataset() {
   const yearlyRows  = yearlyFromMonthly(monthlyRows);
   const clientsHistory = parseClientsHistory(clientsCsv);
   const aumSources  = buildAumSources(volumeRows, mutualCsv);
-  return { volumeRows, revenueRows, monthlyRows, yearlyRows, clientsHistory, aumSources, metrics: buildMetrics(volumeRows, revenueRows, monthlyRows, yearlyRows) };
+  const clientInflowModel = buildClientInflowModel(volumeRows, clientsHistory);
+  return { volumeRows, revenueRows, monthlyRows, yearlyRows, clientsHistory, aumSources, clientInflowModel, metrics: buildMetrics(volumeRows, revenueRows, monthlyRows, yearlyRows) };
 }
 
 export function defaultIndexaAssumptions(dataset) {

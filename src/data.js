@@ -177,30 +177,34 @@ function yearlyFromMonthly(monthlyRows) {
   }));
 }
 
-// TWR (Time-Weighted Return) con Modified Dietz diario
-// Factor diario: V_fin / (V_ini + CF/2)  — asume aportación a mitad del día
-export function buildTwrSeries(volumeRows) {
-  if (volumeRows.length < 2) return null;
+// Rentabilidad de la cartera media, a partir de los valores liquidativos
+// OFICIALES de las carteras modelo (stat=mutual), ponderando las carteras 1 y
+// 10 con los pesos de la mezcla efectiva estimada en buildAumSources. A
+// diferencia del TWR implícito sobre el AUM agregado (que compone ruido de
+// medición del volumen publicado y llegaba a sobreestimar años en 5-8 puntos),
+// esto es dato oficial de Indexa, no una deducción.
+export function buildMixReturnSeries(mutualCsv, mixMeta) {
+  const mutual = parseMutualPortfolios(mutualCsv);
+  if (!mutual || mutual.length < 60 || !mixMeta) return null;
+  const { b1, b10 } = mixMeta;
+  const betaSum = b1 + b10;
+  if (!(betaSum > 0)) return null;
+  const w10 = b10 / betaSum; // peso renormalizado de la cartera 10; el resto, cartera 1
 
   const yearCum  = new Map();   // year → cumulative factor
   const monthCum = new Map();   // "YYYY-MM" → { factor, year, month }
   let   totalFactor = 1;
   const todayYear = new Date().getFullYear();
 
-  for (let i = 1; i < volumeRows.length; i++) {
-    const prev  = volumeRows[i - 1];
-    const curr  = volumeRows[i];
-    // End-of-day convention: inflows arrive at close, so they don't earn
-    // any return on the day they enter. Only the existing portfolio (V_ini)
-    // is exposed to market moves during the day.
-    // Factor = (V_end − CF_day) / V_start
-    const denom = prev.volume;
-    const numer = curr.volume - curr.inflowsDaily;
-    if (denom <= 0 || numer <= 0) continue;
-    const factor = numer / denom;
+  for (let i = 1; i < mutual.length; i++) {
+    const prev = mutual[i - 1];
+    const curr = mutual[i];
+    const factor = 1 + (1 - w10) * (curr.c1 / prev.c1 - 1) + w10 * (curr.c10 / prev.c10 - 1);
+    if (!(factor > 0)) continue;
 
-    const y  = curr.date.getFullYear();
-    const m  = curr.date.getMonth();
+    const date = new Date(`${curr.dateStr}T00:00:00`);
+    const y  = date.getFullYear();
+    const m  = date.getMonth();
     const mk = `${y}-${String(m).padStart(2, "0")}`;
 
     yearCum.set(y, (yearCum.get(y) ?? 1) * factor);
@@ -219,7 +223,8 @@ export function buildTwrSeries(volumeRows) {
     .map(({ year, month, factor }) => ({ year, month, return: factor - 1 }));
 
   const twrAccumulated = totalFactor - 1;
-  const yearsSpan = (volumeRows.at(-1).date - volumeRows[0].date) / (365.25 * 86400e3);
+  const yearsSpan =
+    (new Date(`${mutual.at(-1).dateStr}T00:00:00`) - new Date(`${mutual[0].dateStr}T00:00:00`)) / (365.25 * 86400e3);
   const twrAnnualized = yearsSpan > 0 ? Math.pow(totalFactor, 1 / yearsSpan) - 1 : 0;
   const currentYearReturn = annualReturns.find((r) => r.year === todayYear)?.return ?? null;
 
@@ -805,7 +810,8 @@ export async function loadIndexaDataset() {
   const clientsHistory = parseClientsHistory(clientsCsv);
   const aumSources  = buildAumSources(volumeRows, mutualCsv);
   const clientInflowModel = buildClientInflowModel(volumeRows, clientsHistory);
-  return { volumeRows, revenueRows, monthlyRows, yearlyRows, clientsHistory, aumSources, clientInflowModel, metrics: buildMetrics(volumeRows, revenueRows, monthlyRows, yearlyRows) };
+  const portfolioReturns = buildMixReturnSeries(mutualCsv, aumSources?.meta);
+  return { volumeRows, revenueRows, monthlyRows, yearlyRows, clientsHistory, aumSources, clientInflowModel, portfolioReturns, metrics: buildMetrics(volumeRows, revenueRows, monthlyRows, yearlyRows) };
 }
 
 export function defaultIndexaAssumptions(dataset) {
@@ -1028,7 +1034,7 @@ export function buildTrackerData(dataset) {
 
   const arrYoySeries       = buildArrYoySeries(dataset.revenueRows);
   const arrYearlyIndex     = buildArrYearlyIndexSeries(dataset.revenueRows);
-  const twrData            = buildTwrSeries(dataset.volumeRows);
+  const portfolioReturns   = dataset.portfolioReturns ?? null;
 
   return {
     currentAum, currentArr, lastDate,
@@ -1037,7 +1043,7 @@ export function buildTrackerData(dataset) {
     avgMonthlyInflow, projectedYeAum, targetYearEnd, paceDeltaPct,
     chartData, decomposition,
     seasonalityMonthly, seasonalityQuarterly,
-    annualInflows, monthlyInflowsData, arrYoySeries, arrYearlyIndex, twrData,
+    annualInflows, monthlyInflowsData, arrYoySeries, arrYearlyIndex, portfolioReturns,
     ytdComparison, mtdComparison, annualProjection, monthlyProjection,
   };
 }

@@ -149,8 +149,8 @@ const I18N = {
     lastDays: "ult.",
     real: "Real",
     gvcEstimate: "Estimacion GVC Gaesco",
-    portfolioReturnTitle: "Rentabilidad implicita del AUM (TWR)",
-    portfolioReturnInfo: "Time-Weighted Return diario calculado sobre el AUM agregado con convencion fin-de-dia. Ojo: el volumen publicado va con desfase respecto al valor liquidativo e incluye flujos no registrados como aportacion, y ese ruido se acumula al componer factores diarios, por lo que puede sobreestimar la rentabilidad tipica de una cartera en varios puntos. La seccion Origen del crecimiento del AUM estima la revalorizacion con las carteras modelo oficiales, que es mas fiable.",
+    portfolioReturnTitle: "Rentabilidad de la cartera media (datos oficiales)",
+    portfolioReturnInfo: "Rentabilidad diaria (TWR) de la mezcla efectiva de carteras del cliente medio de Indexa (~7/10, estimada en la seccion Origen del crecimiento del AUM), calculada con los valores liquidativos oficiales de las carteras modelo (tramo 10-100k, netos de comisiones). Sustituye al antiguo TWR implicito deducido del AUM agregado, que componia ruido de medicion del volumen publicado y llegaba a sobreestimar la rentabilidad anual en varios puntos.",
     annualizedTwr: "TWR anualizado",
     partial: "parcial",
     accumulated: "Acumulado",
@@ -344,8 +344,8 @@ const I18N = {
     lastDays: "last",
     real: "Actual",
     gvcEstimate: "GVC Gaesco estimate",
-    portfolioReturnTitle: "Implied AUM return (TWR)",
-    portfolioReturnInfo: "Daily Time-Weighted Return computed on aggregate AUM with end-of-day convention. Caveat: published volume lags the NAV and includes flows not recorded as contributions, and that noise compounds across daily factors, so it can overstate the typical portfolio return by several points. The AUM growth sources section estimates revaluation from the official model portfolios, which is more reliable.",
+    portfolioReturnTitle: "Average portfolio return (official data)",
+    portfolioReturnInfo: "Daily return (TWR) of the effective portfolio mix of the average Indexa client (~7/10, estimated in the AUM growth sources section), computed from the official model portfolio NAVs (10-100k bracket, net of fees). Replaces the old implied TWR deduced from aggregate AUM, which compounded measurement noise from published volume and overstated annual returns by several points.",
     annualizedTwr: "Annualized TWR",
     partial: "partial",
     accumulated: "Accumulated",
@@ -2930,7 +2930,7 @@ export default function App() {
     monthlyProjection,
     arrYoySeries,
     arrYearlyIndex,
-    twrData,
+    portfolioReturns,
   } = tracker;
 
   const today = new Date();
@@ -3175,7 +3175,7 @@ export default function App() {
           </section>
         )}
 
-        {twrData && (
+        {portfolioReturns && (
           <section className="chart-section">
             <div className="chart-top">
               <div>
@@ -3184,17 +3184,17 @@ export default function App() {
                   <InfoTooltip label={t.moreInformation}><p>{t.portfolioReturnInfo}</p></InfoTooltip>
                 </div>
                 <p>
-                  {t.annualizedTwr}: <strong>{percent.format(twrData.twrAnnualized)}</strong>
+                  {t.annualizedTwr}: <strong>{percent.format(portfolioReturns.twrAnnualized)}</strong>
                   {" · "}
-                  {new Date().getFullYear()}: <strong>{percent.format(twrData.currentYearReturn ?? 0)}</strong> ({t.partial})
+                  {new Date().getFullYear()}: <strong>{percent.format(portfolioReturns.currentYearReturn ?? 0)}</strong> ({t.partial})
                   {" · "}
-                  {t.accumulated}: <strong>+{(twrData.twrAccumulated * 100).toFixed(0)}%</strong> {lang === "en" ? "in" : "en"} {twrData.yearsSpan.toFixed(1)} {t.years}
+                  {t.accumulated}: <strong>+{(portfolioReturns.twrAccumulated * 100).toFixed(0)}%</strong> {lang === "en" ? "in" : "en"} {portfolioReturns.yearsSpan.toFixed(1)} {t.years}
                 </p>
               </div>
             </div>
-            <ReturnBarsChart annualReturns={twrData.annualReturns.filter((r) => r.year >= 2021)} />
+            <ReturnBarsChart annualReturns={portfolioReturns.annualReturns.filter((r) => r.year >= 2021)} />
             <p className="chart-note" style={{ marginTop: 16, marginBottom: 4 }}>{t.monthlyBreakdownNote}</p>
-            <ReturnMonthlyHeatmap monthlyReturns={twrData.monthlyReturns.filter((r) => r.year >= 2021)} t={t} />
+            <ReturnMonthlyHeatmap monthlyReturns={portfolioReturns.monthlyReturns.filter((r) => r.year >= 2021)} t={t} />
             <p className="chart-note">{t.currentYearPartialNote}</p>
           </section>
         )}

@@ -373,11 +373,19 @@ export function buildAumSources(volumeRows, mutualCsv) {
 }
 
 // ── Aportaciones: clientes nuevos vs recurrentes ──────────────────────────────
-// Modelo mensual sin intercepto: F_m = a·ΔClientes_m + b·Clientes_{m-1}
-//   a ≈ ticket inicial medio que trae un cliente nuevo (incluye sus primeros meses)
-//   b ≈ aportación recurrente mensual media por cliente existente
+// Modelo mensual: F_m = a·ΔClientes_m + b·Clientes_{m-1}
+//   a = ticket inicial medio de un cliente nuevo
+//   b = aportación recurrente mensual media por cliente existente
+// ΔClientes y Clientes están tan correlacionados (≈0,96: Indexa crece a ritmo
+// estable) que una regresión libre no identifica el reparto: hay una cresta de
+// soluciones (a,b) estadísticamente equivalentes. Por eso `a` se ancla al dato
+// de la documentación oficial de Indexa (~10.000€ de inversión inicial media)
+// y solo se estima b. Validación cruzada: el b estimado (~480€/mes) es
+// consistente con la aportación media mensual oficial (~440€).
 // La serie de clientes se interpola linealmente entre observaciones, así que la
 // atribución mensual es aproximada en los tramos con pocas observaciones.
+const NEW_CLIENT_INITIAL_TICKET = 10000;
+
 export function buildClientInflowModel(volumeRows, clientsHistory) {
   if (!clientsHistory || clientsHistory.length < 6 || volumeRows.length < 60) return null;
 
@@ -417,19 +425,15 @@ export function buildClientInflowModel(volumeRows, clientsHistory) {
   }
   if (months.length < 24) return null;
 
-  // OLS 2x2 sin intercepto
-  let s11 = 0, s22 = 0, s12 = 0, s1y = 0, s2y = 0;
+  // a anclado al dato oficial; OLS de un parámetro para b sobre el flujo restante
+  const initialTicket = NEW_CLIENT_INITIAL_TICKET;
+  let sxx = 0, sxy = 0;
   for (const m of months) {
-    s11 += m.dClients * m.dClients;
-    s22 += m.clientsPrev * m.clientsPrev;
-    s12 += m.dClients * m.clientsPrev;
-    s1y += m.dClients * m.inflows;
-    s2y += m.clientsPrev * m.inflows;
+    sxx += m.clientsPrev * m.clientsPrev;
+    sxy += m.clientsPrev * (m.inflows - initialTicket * m.dClients);
   }
-  const det = s11 * s22 - s12 * s12;
-  if (Math.abs(det) < 1e-9) return null;
-  const initialTicket = (s1y * s22 - s2y * s12) / det;
-  const recurringMonthly = (s2y * s11 - s1y * s12) / det;
+  if (sxx <= 0) return null;
+  const recurringMonthly = sxy / sxx;
 
   const meanInflows = months.reduce((s, m) => s + m.inflows, 0) / months.length;
   let ssRes = 0, ssTot = 0, totalNew = 0, totalRecurring = 0, totalInflows = 0;

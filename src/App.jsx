@@ -2428,10 +2428,15 @@ function daysBetween(start, end) {
   return Math.max(1, Math.round((end - start) / (24 * 60 * 60 * 1000)));
 }
 
+// Media por día sobre las últimas `count` observaciones. Divide por los días
+// que abarcan, no por el número de registros: si el scrape se saltó jornadas,
+// una fila puede valer varios días y dividir por filas infla la media.
 function avgLast(items, count) {
   const sample = items.slice(-count);
   if (!sample.length) return null;
-  return sample.reduce((sum, item) => sum + item.delta, 0) / sample.length;
+  const days = sample.reduce((sum, item) => sum + item.days, 0);
+  if (!days) return null;
+  return sample.reduce((sum, item) => sum + item.delta, 0) / days;
 }
 
 function mondayOf(date) {
@@ -2490,19 +2495,26 @@ function buildClientAnalytics(data) {
 
   const weekMap = new Map();
   dailyRows.forEach((row) => {
-    const weekStart = mondayOf(row.date);
-    const key = dateKey(weekStart);
-    const current = weekMap.get(key) ?? {
-      key,
-      start: weekStart,
-      end: row.date,
-      delta: 0,
-      days: 0,
-    };
-    current.end = row.date > current.end ? row.date : current.end;
-    current.delta += row.delta;
-    current.days += row.days;
-    weekMap.set(key, current);
+    // Una fila que cubre varios días (hueco en el scrape) se reparte entre las
+    // semanas que abarca a razón de avgPerDay. Imputarla entera a la semana de
+    // su fecha le atribuiría jornadas que son de la semana anterior.
+    for (let offset = row.days - 1; offset >= 0; offset -= 1) {
+      const day = new Date(row.date);
+      day.setDate(day.getDate() - offset);
+      const weekStart = mondayOf(day);
+      const key = dateKey(weekStart);
+      const current = weekMap.get(key) ?? {
+        key,
+        start: weekStart,
+        end: day,
+        delta: 0,
+        days: 0,
+      };
+      current.end = day > current.end ? day : current.end;
+      current.delta += row.avgPerDay;
+      current.days += 1;
+      weekMap.set(key, current);
+    }
   });
 
   const weeklyRows = [...weekMap.values()]
@@ -2653,8 +2665,11 @@ function ClientsDailyAddsChart({ data, t, lang }) {
   const iH = H - pad.top - pad.bottom;
   if (!data?.length) return null;
 
-  const minVal = Math.min(0, ...data.map((row) => row.delta)) * 1.15;
-  const maxVal = Math.max(0, ...data.map((row) => row.delta)) * 1.15;
+  // Se pinta el ritmo diario (avgPerDay), no el incremento bruto: cuando el
+  // scrape se salta jornadas una fila acumula varios días y su delta no es
+  // comparable con el del resto de barras.
+  const minVal = Math.min(0, ...data.map((row) => row.avgPerDay)) * 1.15;
+  const maxVal = Math.max(0, ...data.map((row) => row.avgPerDay)) * 1.15;
   const range = maxVal - minVal || 1;
   const slotW = iW / data.length;
   const barW = Math.max(10, Math.min(36, slotW * 0.58));
@@ -2676,17 +2691,22 @@ function ClientsDailyAddsChart({ data, t, lang }) {
       ))}
       <line x1={pad.left} y1={zeroY.toFixed(1)} x2={W - pad.right} y2={zeroY.toFixed(1)} stroke="#94A3B8" strokeWidth="0.9" />
       {data.map((row, index) => {
+        const rate = row.avgPerDay;
         const cx = xCenter(index);
-        const y = row.delta >= 0 ? yScale(row.delta) : zeroY;
-        const h = Math.max(2, Math.abs(yScale(row.delta) - zeroY));
-        const fill = row.delta >= 0 ? "#0F766E" : "#DC2626";
+        const y = rate >= 0 ? yScale(rate) : zeroY;
+        const h = Math.max(2, Math.abs(yScale(rate) - zeroY));
+        const fill = rate >= 0 ? "#0F766E" : "#DC2626";
+        // Las barras que promedian varios días se marcan en tono más tenue y
+        // con el número de jornadas, para no leerlas como una observación diaria.
+        const spansGap = row.days > 1;
         return (
           <g key={dateKey(row.date)}>
             <rect x={(cx - barW / 2).toFixed(1)} y={y.toFixed(1)} width={barW.toFixed(1)} height={h.toFixed(1)}
-              fill={fill} opacity="0.84" rx="3" />
-            <text x={cx.toFixed(1)} y={(row.delta >= 0 ? y - 6 : y + h + 14).toFixed(1)}
+              fill={fill} opacity={spansGap ? 0.4 : 0.84} rx="3"
+              stroke={spansGap ? fill : "none"} strokeWidth={spansGap ? 1 : 0} strokeDasharray={spansGap ? "3 2" : undefined} />
+            <text x={cx.toFixed(1)} y={(rate >= 0 ? y - 6 : y + h + 14).toFixed(1)}
               textAnchor="middle" fontSize="10" fill={fill} fontWeight="700">
-              {row.delta >= 0 ? "+" : ""}{row.delta}
+              {rate >= 0 ? "+" : ""}{Math.round(rate)}{spansGap ? ` · ${row.days}d` : ""}
             </text>
             <text x={cx.toFixed(1)} y={H - 12} textAnchor="middle" fontSize="10" fill="#94A3B8">
               {row.date.toLocaleDateString(lang === "en" ? "en-GB" : "es-ES", { day: "2-digit", month: "short" })}

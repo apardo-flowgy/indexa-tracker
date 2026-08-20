@@ -132,7 +132,10 @@ const I18N = {
     clientsDeepDiveTitle: "Clientes: ritmo diario y tendencia semanal",
     clientsDeepDiveInfo: "El historico anual permite ver el salto estructural de clientes desde 2021. Desde el 15-05-2026 el seguimiento pasa a ser diario, lo que permite medir altas netas por dia y suavizarlas con medias semanales.",
     clientsAnnualSubtitle: "Hitos anuales y dato parcial 2026",
-    clientsDailySubtitle: "Altas netas diarias desde el 15-05-2026",
+    clientsDailySubtitle: "Altas netas diarias",
+    clientsRange30: "30d",
+    clientsRange90: "90d",
+    clientsRangeAll: "Todo",
     clientsWeeklySubtitle: "Resumen semanal desde que hay datos diarios",
     clientsSinceDailyStart: "Desde inicio diario",
     clientsAvgSinceStart: "Media diaria desde inicio",
@@ -330,7 +333,10 @@ const I18N = {
     clientsDeepDiveTitle: "Clients: daily pace and weekly trend",
     clientsDeepDiveInfo: "The annual history shows the structural growth in clients since 2021. From 15 May 2026, tracking becomes daily, making it possible to measure net client additions per day and smooth them with weekly averages.",
     clientsAnnualSubtitle: "Annual milestones and partial 2026 data",
-    clientsDailySubtitle: "Daily net additions since 15 May 2026",
+    clientsDailySubtitle: "Daily net additions",
+    clientsRange30: "30d",
+    clientsRange90: "90d",
+    clientsRangeAll: "All",
     clientsWeeklySubtitle: "Weekly summary since daily data started",
     clientsSinceDailyStart: "Since daily start",
     clientsAvgSinceStart: "Daily average since start",
@@ -2419,6 +2425,13 @@ const CLIENTS_TARGETS = [
   { year: 2030, clients: 454000 },
 ];
 const CLIENTS_DAILY_START = "2026-05-15";
+// Ventanas del grafico de altas diarias. 0 = serie completa. La serie crece
+// un punto al dia, asi que sin acotar acaba ilegible.
+const DAILY_RANGES = [
+  { days: 30, key: "clientsRange30" },
+  { days: 90, key: "clientsRange90" },
+  { days: 0, key: "clientsRangeAll" },
+];
 
 function dateKey(date) {
   return date.toISOString().slice(0, 10);
@@ -2672,7 +2685,11 @@ function ClientsDailyAddsChart({ data, t, lang }) {
   const maxVal = Math.max(0, ...data.map((row) => row.avgPerDay)) * 1.15;
   const range = maxVal - minVal || 1;
   const slotW = iW / data.length;
-  const barW = Math.max(10, Math.min(36, slotW * 0.58));
+  const barW = Math.max(3, Math.min(36, slotW * 0.62));
+  // Densidad adaptativa: por debajo de ~26px por barra las cifras se solapan,
+  // y las fechas necesitan ~56px. Se diezman en vez de dibujarlas todas.
+  const showValues = slotW >= 26;
+  const dateStep = Math.max(1, Math.ceil(56 / slotW));
   const yScale = (value) => pad.top + iH * (1 - (value - minVal) / range);
   const zeroY = yScale(0);
   const xCenter = (index) => pad.left + (index + 0.5) * slotW;
@@ -2704,13 +2721,17 @@ function ClientsDailyAddsChart({ data, t, lang }) {
             <rect x={(cx - barW / 2).toFixed(1)} y={y.toFixed(1)} width={barW.toFixed(1)} height={h.toFixed(1)}
               fill={fill} opacity={spansGap ? 0.4 : 0.84} rx="3"
               stroke={spansGap ? fill : "none"} strokeWidth={spansGap ? 1 : 0} strokeDasharray={spansGap ? "3 2" : undefined} />
-            <text x={cx.toFixed(1)} y={(rate >= 0 ? y - 6 : y + h + 14).toFixed(1)}
-              textAnchor="middle" fontSize="10" fill={fill} fontWeight="700">
-              {rate >= 0 ? "+" : ""}{Math.round(rate)}{spansGap ? ` · ${row.days}d` : ""}
-            </text>
-            <text x={cx.toFixed(1)} y={H - 12} textAnchor="middle" fontSize="10" fill="#94A3B8">
-              {row.date.toLocaleDateString(lang === "en" ? "en-GB" : "es-ES", { day: "2-digit", month: "short" })}
-            </text>
+            {(showValues || spansGap) && (
+              <text x={cx.toFixed(1)} y={(rate >= 0 ? y - 6 : y + h + 14).toFixed(1)}
+                textAnchor="middle" fontSize="10" fill={fill} fontWeight="700">
+                {rate >= 0 ? "+" : ""}{Math.round(rate)}{spansGap ? ` · ${row.days}d` : ""}
+              </text>
+            )}
+            {(data.length - 1 - index) % dateStep === 0 && (
+              <text x={cx.toFixed(1)} y={H - 12} textAnchor="middle" fontSize="10" fill="#94A3B8">
+                {row.date.toLocaleDateString(lang === "en" ? "en-GB" : "es-ES", { day: "2-digit", month: "short" })}
+              </text>
+            )}
           </g>
         );
       })}
@@ -2719,8 +2740,17 @@ function ClientsDailyAddsChart({ data, t, lang }) {
 }
 
 function ClientAnalyticsSection({ data, t, lang }) {
+  const [dailyRange, setDailyRange] = useState(DAILY_RANGES[0].days);
   const analytics = buildClientAnalytics(data);
   if (!analytics.latest || !analytics.dailyStart) return null;
+
+  // Recorta por fecha, no por numero de registros: si el scrape se salto dias,
+  // N filas no equivalen a N jornadas y la etiqueta "30d" mentiria.
+  const rangeCutoff = new Date(analytics.latest.date);
+  rangeCutoff.setDate(rangeCutoff.getDate() - dailyRange + 1);
+  const visibleDaily = dailyRange === 0
+    ? analytics.dailyRows
+    : analytics.dailyRows.filter((row) => row.date >= rangeCutoff);
   const locale = lang === "en" ? "en-GB" : "es-ES";
   const numberFmt = new Intl.NumberFormat(locale);
   const signedFmt = (value, digits = 0) =>
@@ -2773,8 +2803,22 @@ function ClientAnalyticsSection({ data, t, lang }) {
       {analytics.dailyRows.length > 0 && (
         <div className="client-detail-grid">
           <article className="client-detail-card wide">
-            <h4>{t.clientsDailySubtitle}</h4>
-            <ClientsDailyAddsChart data={analytics.dailyRows} t={t} lang={lang} />
+            <div className="client-detail-head">
+              <h4>{t.clientsDailySubtitle}</h4>
+              <div className="client-range-switch">
+                {DAILY_RANGES.map((opt) => (
+                  <button
+                    key={opt.key}
+                    type="button"
+                    className={dailyRange === opt.days ? "active" : ""}
+                    onClick={() => setDailyRange(opt.days)}
+                  >
+                    {t[opt.key]}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <ClientsDailyAddsChart data={visibleDaily} t={t} lang={lang} />
           </article>
           <article className="client-detail-card">
             <h4>{t.clientsWeeklySubtitle}</h4>

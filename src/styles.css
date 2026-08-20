@@ -475,6 +475,52 @@ button, input { font: inherit; cursor: pointer; }
   margin-bottom: 12px;
 }
 
+.client-detail-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.client-detail-head h4 {
+  margin-bottom: 0;
+}
+
+.client-range-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #FFFFFF;
+}
+
+.client-range-switch button {
+  min-width: 38px;
+  border: 0;
+  border-radius: 5px;
+  padding: 4px 9px;
+  background: transparent;
+  color: #64748B;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.client-range-switch button:hover {
+  color: #0F172A;
+  background: #F1F5F9;
+}
+
+.client-range-switch button.active {
+  color: #FFFFFF;
+  background: #0F766E;
+}
+
 .client-year-grid {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
